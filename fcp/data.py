@@ -5,8 +5,8 @@ import json
 
 
 # Nombre de archivos
-database = "fcp/fcp_data/fcp_database.db"
-universe_assets_file = "fcp/fcp_data/universe_assets.json"
+database = "fcp_data/fcp_database.db"
+universe_assets_file = "fcp_data/universe_assets.json"
 
 def get_asset_data_yahoo(asset_name, start_date, end_date, save_csv=False, conn=False):
     """

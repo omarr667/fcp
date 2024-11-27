@@ -2,9 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='fcp',
-    version='0.0.1',
+    version='0.0.2',
     description='Paquete de funciones para el curso de Finanzas Cuantitativas con Python',
-    packages=find_packages(),
+    packages=find_packages(include=["fcp", "fcp.*"]),
+    include_package_data=True,
     install_requires=[
     ],
 )
