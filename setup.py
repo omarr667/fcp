@@ -16,6 +16,6 @@ setup(
         ]
     },
     install_requires=[
-        "pandas", "yfinance", "numpy", "matplotlib", "scipy", "sqlite3"
+        "pandas", "yfinance", "numpy", "matplotlib", "scipy"
     ],
 )
