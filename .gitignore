@@ -1,6 +1,4 @@
-/semana_05_prueba_fcp_functions.py
-/semana_05_sandbox_fcp_functions.py
-/semana_06_livecode_1.py
-/semana_06_livecode_2.py
-/semana_06_livecode_2_refactorizacion.py
-/functions.py
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
