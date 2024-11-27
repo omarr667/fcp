@@ -2,11 +2,7 @@ import pandas as pd
 import yfinance as yf
 import sqlite3 as sql
 import json
-
-
-# Nombre de archivos
-database = "fcp_data/fcp_database.db"
-universe_assets_file = "fcp_data/universe_assets.json"
+import importlib.resources
 
 def get_asset_data_yahoo(asset_name, start_date, end_date, save_csv=False, conn=False):
     """
@@ -68,11 +64,15 @@ def generate_local_asset_universe(start_date, end_date):
     """
     try:
         # Carga el archivo JSON que contiene los activos a procesar
-        with open(universe_assets_file, encoding='utf-8') as file:
+                
+        with importlib.resources.open_text("fcp.fcp_data", "universe_assets.json", encoding='utf-8') as file:
             universe_dict = json.load(file)
-        
+            
+    
         # Conecta a la base de datos SQLite
-        conn = sql.connect(database)
+    
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
         
         # Convierte el universo de activos en un DataFrame y lo guarda en la base de datos
         universe_df = pd.DataFrame(universe_dict)
@@ -87,7 +87,7 @@ def generate_local_asset_universe(start_date, end_date):
             get_asset_data_yahoo(asset_name, start_date, end_date, save_csv=True, conn=conn)
         
     except FileNotFoundError:
-        print(f"El archivo {universe_assets_file} no se encontró.")
+        print(f"El archivo fcp.fcp_data no se encontró.")
     except sql.Error as e:
         print(f"Error al trabajar con la base de datos: {e}")
     except Exception as e:
@@ -121,7 +121,8 @@ def get_asset_data(asset_name=None, where=None, query=None):
 
     try:
         # Conecta a la base de datos SQLite
-        conn = sql.connect(database)
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
 
         if asset_name:
             # Construye la consulta SQL para seleccionar todos los registros de la tabla del activo
