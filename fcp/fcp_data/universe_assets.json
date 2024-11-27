@@ -1,0 +1,570 @@
+[
+  {
+    "asset": "^SPX",
+    "name": "Índice S&P 500",
+    "asset_class": "index",
+    "subclass": "index",
+    "country": "Estados Unidos",
+    "description": "Índice que representa el rendimiento de las 500 empresas más grandes cotizadas en la bolsa de Estados Unidos."
+  },
+  {
+    "asset": "^IXIC",
+    "name": "Índice Nasdaq Composite",
+    "asset_class": "index",
+    "subclass": "index",
+    "country": "Estados Unidos",
+    "description": "Índice que mide el rendimiento de las empresas tecnológicas y de crecimiento más importantes de Estados Unidos."
+  },
+  {
+    "asset": "^MXX",
+    "name": "Índice IPC (México)",
+    "asset_class": "index",
+    "subclass": "index",
+    "country": "México",
+    "description": "Índice que refleja el desempeño de las empresas más grandes y líquidas de la Bolsa Mexicana de Valores."
+  },
+  {
+    "asset": "^STOXX",
+    "name": "Índice STOXX Europe 600",
+    "asset_class": "index",
+    "subclass": "index",
+    "country": "Europa",
+    "description": "Índice que agrupa a 600 de las principales empresas europeas de diversos sectores económicos."
+  },
+  {
+    "asset": "^STOXX50E",
+    "name": "Índice Euro Stoxx 50",
+    "asset_class": "index",
+    "subclass": "index",
+    "country": "Europa",
+    "description": "Índice que representa las 50 empresas más grandes y líquidas de la eurozona."
+  },
+  {
+    "asset": "^VIX",
+    "name": "Índice de Volatilidad VIX",
+    "asset_class": "index",
+    "subclass": "index",
+    "country": "Estados Unidos",
+    "description": "Índice que mide la expectativa de volatilidad del mercado basada en las opciones del S&P 500."
+  },
+  {
+    "asset": "^N225",
+    "name": "Índice Nikkei 225",
+    "asset_class": "index",
+    "subclass": "index",
+    "country": "Japón",
+    "description": "Índice que refleja el desempeño de las 225 empresas más grandes y representativas de la Bolsa de Tokio."
+  },
+  {
+    "asset": "SPY",
+    "name": "ETF SPDR S&P 500",
+    "asset_class": "etf",
+    "subclass": "tracker",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que replica el desempeño del índice S&P 500."
+  },
+  {
+    "asset": "QQQ",
+    "name": "ETF Invesco QQQ",
+    "asset_class": "etf",
+    "subclass": "tracker",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que sigue el rendimiento del índice Nasdaq-100, compuesto principalmente por empresas tecnológicas."
+  },
+  {
+    "asset": "EWW",
+    "name": "ETF iShares IPC México",
+    "asset_class": "etf",
+    "subclass": "tracker",
+    "country": "México",
+    "description": "Fondo cotizado en bolsa que rastrea el índice IPC de México, representando a las principales empresas mexicanas."
+  },
+  {
+    "asset": "XLK",
+    "name": "ETF Sector Tecnología (XLK)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en empresas del sector tecnológico incluidas en el S&P 500."
+  },
+  {
+    "asset": "XLF",
+    "name": "ETF Sector Financiero (XLF)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que se enfoca en el sector financiero, incluyendo bancos, compañías de seguros y otras instituciones financieras."
+  },
+  {
+    "asset": "XLV",
+    "name": "ETF Sector Salud (XLV)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en empresas del sector salud, como farmacéuticas y proveedores de servicios médicos."
+  },
+  {
+    "asset": "XLE",
+    "name": "ETF Sector Energía (XLE)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que se centra en el sector energético, incluyendo petróleo, gas y energías renovables."
+  },
+  {
+    "asset": "XLC",
+    "name": "ETF Sector Comunicaciones (XLC)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en empresas del sector de comunicaciones, como telecomunicaciones y medios."
+  },
+  {
+    "asset": "XLY",
+    "name": "ETF Sector Consumo Discrecional (XLY)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en empresas del sector de consumo discrecional, incluyendo minoristas y fabricantes de bienes de consumo."
+  },
+  {
+    "asset": "XLP",
+    "name": "ETF Sector Consumo Diario (XLP)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que se enfoca en el sector de consumo diario, incluyendo productos básicos y bienes de consumo esenciales."
+  },
+  {
+    "asset": "XLI",
+    "name": "ETF Sector Industrial (XLI)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en el sector industrial, incluyendo manufactura, transporte y servicios industriales."
+  },
+  {
+    "asset": "XLB",
+    "name": "ETF Sector Materiales (XLB)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que se centra en el sector de materiales, incluyendo productos químicos, metales y minería."
+  },
+  {
+    "asset": "XLRE",
+    "name": "ETF Sector Bienes Raíces (XLRE)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en el sector de bienes raíces, incluyendo fideicomisos de inversión inmobiliaria (REITs)."
+  },
+  {
+    "asset": "XLU",
+    "name": "ETF Sector Utilidades (XLU)",
+    "asset_class": "etf",
+    "subclass": "sector",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que se enfoca en el sector de utilidades, incluyendo empresas de servicios públicos y energía."
+  },
+  {
+    "asset": "IVW",
+    "name": "ETF Factor de Crecimiento (IVW)",
+    "asset_class": "etf",
+    "subclass": "factor",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en empresas con alto potencial de crecimiento, basándose en factores fundamentales."
+  },
+  {
+    "asset": "IVE",
+    "name": "ETF Factor de Valor (IVE)",
+    "asset_class": "etf",
+    "subclass": "factor",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que se enfoca en empresas consideradas de valor, con precios atractivos en relación a sus fundamentales."
+  },
+  {
+    "asset": "QUAL",
+    "name": "ETF Factor de Calidad (QUAL)",
+    "asset_class": "etf",
+    "subclass": "factor",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en empresas con altos estándares de calidad, incluyendo rentabilidad y solidez financiera."
+  },
+  {
+    "asset": "USMV",
+    "name": "ETF de Mínima Volatilidad (USMV)",
+    "asset_class": "etf",
+    "subclass": "factor",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa diseñado para minimizar la volatilidad, invirtiendo en acciones de menor riesgo."
+  },
+  {
+    "asset": "MTUM",
+    "name": "ETF Factor Momentum (MTUM)",
+    "asset_class": "etf",
+    "subclass": "factor",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que invierte en empresas con tendencias de precios al alza, aprovechando el momentum del mercado."
+  },
+  {
+    "asset": "SIZE",
+    "name": "ETF Factor Tamaño (SIZE)",
+    "asset_class": "etf",
+    "subclass": "factor",
+    "country": "Estados Unidos",
+    "description": "Fondo cotizado en bolsa que se enfoca en empresas de diferentes tamaños, aprovechando las diferencias de rendimiento entre grandes y pequeñas empresas."
+  },
+  {
+    "asset": "NVDA",
+    "name": "Nvidia Corporation",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa líder en tecnología de semiconductores, conocida por sus unidades de procesamiento gráfico (GPU) y soluciones de inteligencia artificial."
+  },
+  {
+    "asset": "AAPL",
+    "name": "Apple Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Multinacional tecnológica reconocida por sus productos electrónicos como el iPhone, iPad, Mac y servicios como Apple Music."
+  },
+  {
+    "asset": "MSFT",
+    "name": "Microsoft Corporation",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa líder en software, servicios en la nube y hardware, conocida por productos como Windows, Office y Azure."
+  },
+  {
+    "asset": "AMZN",
+    "name": "Amazon.com, Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Gigante del comercio electrónico y servicios de computación en la nube, conocido por su plataforma de ventas online y AWS."
+  },
+  {
+    "asset": "META",
+    "name": "Meta Platforms, Inc. (anteriormente Facebook)",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa líder en redes sociales y realidad virtual, propietaria de plataformas como Facebook, Instagram y Oculus."
+  },
+  {
+    "asset": "GOOG",
+    "name": "Alphabet Inc. (ex Google)",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa matriz de Google, enfocada en tecnología de búsqueda, publicidad online, sistemas operativos y otros servicios tecnológicos."
+  },
+  {
+    "asset": "TSLA",
+    "name": "Tesla, Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa líder en vehículos eléctricos, energía renovable y soluciones de almacenamiento de energía."
+  },
+  {
+    "asset": "NFLX",
+    "name": "Netflix, Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Plataforma de streaming de contenido multimedia, incluyendo series, películas y producciones originales."
+  },
+  {
+    "asset": "COST",
+    "name": "Costco Wholesale Corporation",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Cadena de almacenes de membresía que ofrece productos al por mayor a precios competitivos."
+  },
+  {
+    "asset": "WMT",
+    "name": "Walmart Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Gigante minorista global, operando tiendas de descuento, supermercados y comercio electrónico."
+  },
+  {
+    "asset": "KO",
+    "name": "The Coca-Cola Company",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Multinacional de bebidas, conocida por sus productos como Coca-Cola, Fanta y Sprite."
+  },
+  {
+    "asset": "PEP",
+    "name": "PepsiCo, Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa líder en alimentos y bebidas, propietaria de marcas como Pepsi, Lay's y Quaker."
+  },
+  {
+    "asset": "PM",
+    "name": "Philip Morris International Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa multinacional de tabaco, conocida por marcas como Marlboro."
+  },
+  {
+    "asset": "CL",
+    "name": "Colgate-Palmolive Company",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa líder en productos de higiene personal, cuidado del hogar y cuidado oral."
+  },
+  {
+    "asset": "PG",
+    "name": "Procter & Gamble Co.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Multinacional de bienes de consumo, con marcas como Tide, Gillette y Pampers."
+  },
+  {
+    "asset": "BRK-B",
+    "name": "Berkshire Hathaway Inc. (Clase B)",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Conglomerado dirigido por Warren Buffett, con inversiones en múltiples sectores como seguros, energía y manufactura."
+  },
+  {
+    "asset": "JPM",
+    "name": "JPMorgan Chase & Co.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Banco de inversión y servicios financieros líder, ofreciendo una amplia gama de servicios bancarios y financieros."
+  },
+  {
+    "asset": "V",
+    "name": "Visa Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa global de pagos electrónicos, facilitando transacciones financieras entre consumidores, comerciantes y bancos."
+  },
+  {
+    "asset": "MC",
+    "name": "Mastercard Incorporated",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Corporación multinacional de tecnología en pagos, facilitando transacciones electrónicas en todo el mundo."
+  },
+  {
+    "asset": "BAC",
+    "name": "Bank of America Corporation",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Banco global que ofrece servicios financieros, incluyendo banca minorista, inversiones y gestión de patrimonio."
+  },
+  {
+    "asset": "WFC",
+    "name": "Wells Fargo & Company",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Institución financiera que proporciona servicios bancarios, hipotecarios y de inversión."
+  },
+  {
+    "asset": "MS",
+    "name": "Morgan Stanley",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Firma global de servicios financieros, especializada en banca de inversión, gestión de patrimonio y mercados de valores."
+  },
+  {
+    "asset": "GS",
+    "name": "Goldman Sachs Group, Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Firma líder en banca de inversión, gestión de inversiones y servicios financieros globales."
+  },
+  {
+    "asset": "LLY",
+    "name": "Eli Lilly and Company",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa farmacéutica líder en investigación y desarrollo de medicamentos innovadores."
+  },
+  {
+    "asset": "UNH",
+    "name": "UnitedHealth Group Incorporated",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Compañía de servicios de salud diversificada, ofreciendo seguros de salud y servicios de atención médica."
+  },
+  {
+    "asset": "JNJ",
+    "name": "Johnson & Johnson",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa multinacional enfocada en productos farmacéuticos, dispositivos médicos y bienes de consumo."
+  },
+  {
+    "asset": "ABBV",
+    "name": "AbbVie Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Compañía biofarmacéutica especializada en medicamentos innovadores para diversas áreas terapéuticas."
+  },
+  {
+    "asset": "MRK",
+    "name": "Merck & Co., Inc.",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Empresa líder en investigación y desarrollo de medicamentos, vacunas y productos para la salud."
+  },
+  {
+    "asset": "ABT",
+    "name": "Abbott Laboratories",
+    "asset_class": "equity",
+    "subclass": "equity",
+    "country": "Estados Unidos",
+    "description": "Compañía global de atención médica que desarrolla productos médicos, diagnósticos y nutricionales."
+  },
+  {
+    "asset": "BTC-USD",
+    "name": "Bitcoin (BTC)",
+    "asset_class": "crypto",
+    "subclass": "token_native",
+    "country": "Descentralizado",
+    "description": "Criptomoneda pionera, conocida por su uso como reserva de valor y medio de intercambio digital."
+  },
+  {
+    "asset": "ETH-USD",
+    "name": "Ethereum (ETH)",
+    "asset_class": "crypto",
+    "subclass": "token_native",
+    "country": "Descentralizado",
+    "description": "Plataforma blockchain que soporta contratos inteligentes y aplicaciones descentralizadas (dApps)."
+  },
+  {
+    "asset": "SOL-USD",
+    "name": "Solana (SOL)",
+    "asset_class": "crypto",
+    "subclass": "token_native",
+    "country": "Descentralizado",
+    "description": "Criptomoneda enfocada en proporcionar una infraestructura rápida y escalable para aplicaciones descentralizadas."
+  },
+  {
+    "asset": "TRX-USD",
+    "name": "Tron (TRX)",
+    "asset_class": "crypto",
+    "subclass": "token_native",
+    "country": "Descentralizado",
+    "description": "Plataforma blockchain que facilita la creación y distribución de contenido digital y aplicaciones descentralizadas."
+  },
+  {
+    "asset": "USDT-USD",
+    "name": "Tether (USDT)",
+    "asset_class": "crypto",
+    "subclass": "stablecoin",
+    "country": "Descentralizado",
+    "description": "Stablecoin respaldada por el dólar estadounidense, diseñada para mantener una paridad 1:1 con el USD."
+  },
+  {
+    "asset": "USDC-USD",
+    "name": "USD Coin (USDC)",
+    "asset_class": "crypto",
+    "subclass": "stablecoin",
+    "country": "Descentralizado",
+    "description": "Stablecoin regulada, respaldada por el dólar estadounidense y utilizada para transacciones estables en el mercado cripto."
+  },
+  {
+    "asset": "DAI-USD",
+    "name": "Dai (DAI)",
+    "asset_class": "crypto",
+    "subclass": "stablecoin",
+    "country": "Descentralizado",
+    "description": "Stablecoin descentralizada respaldada por criptomonedas, diseñada para mantener una paridad estable con el dólar estadounidense."
+  },
+  {
+    "asset": "FRAX-USD",
+    "name": "Frax (FRAX)",
+    "asset_class": "crypto",
+    "subclass": "stablecoin",
+    "country": "Descentralizado",
+    "description": "Stablecoin parcialmente respaldada por reservas de criptomonedas y diseñada para mantener una paridad estable con el dólar estadounidense."
+  },
+  {
+    "asset": "EURUSD=X",
+    "name": "Euro (EUR/USD)",
+    "asset_class": "currency",
+    "subclass": "currency",
+    "country": "Zona Euro",
+    "description": "Par de divisas que representa la cotización del euro frente al dólar estadounidense en el mercado forex."
+  },
+  {
+    "asset": "GBPUSD=X",
+    "name": "Libra Esterlina (GBP/USD)",
+    "asset_class": "currency",
+    "subclass": "currency",
+    "country": "Reino Unido",
+    "description": "Par de divisas que representa la cotización de la libra esterlina frente al dólar estadounidense en el mercado forex."
+  },
+  {
+    "asset": "JPYUSD=X",
+    "name": "Yen Japonés (JPY/USD)",
+    "asset_class": "currency",
+    "subclass": "currency",
+    "country": "Japón",
+    "description": "Par de divisas que representa la cotización del yen japonés frente al dólar estadounidense en el mercado forex."
+  },
+  {
+    "asset": "AUDUSD=X",
+    "name": "Dólar Australiano (AUD/USD)",
+    "asset_class": "currency",
+    "subclass": "currency",
+    "country": "Australia",
+    "description": "Par de divisas que representa la cotización del dólar australiano frente al dólar estadounidense en el mercado forex."
+  },
+  {
+    "asset": "CADUSD=X",
+    "name": "Dólar Canadiense (CAD/USD)",
+    "asset_class": "currency",
+    "subclass": "currency",
+    "country": "Canadá",
+    "description": "Par de divisas que representa la cotización del dólar canadiense frente al dólar estadounidense en el mercado forex."
+  },
+  {
+    "asset": "CHFUSD=X",
+    "name": "Franco Suizo (CHF/USD)",
+    "asset_class": "currency",
+    "subclass": "currency",
+    "country": "Suiza",
+    "description": "Par de divisas que representa la cotización del franco suizo frente al dólar estadounidense en el mercado forex."
+  },
+  {
+    "asset": "MXNUSD=X",
+    "name": "Peso Mexicano (MXN/USD)",
+    "asset_class": "currency",
+    "subclass": "currency",
+    "country": "México",
+    "description": "Par de divisas que representa la cotización del peso mexicano frente al dólar estadounidense en el mercado forex."
+  }
+]
