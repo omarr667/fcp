@@ -219,7 +219,7 @@
     "asset": "NVDA",
     "name": "Nvidia Corporation",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Empresa líder en tecnología de semiconductores, conocida por sus unidades de procesamiento gráfico (GPU) y soluciones de inteligencia artificial."
   },
@@ -227,7 +227,7 @@
     "asset": "AAPL",
     "name": "Apple Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Multinacional tecnológica reconocida por sus productos electrónicos como el iPhone, iPad, Mac y servicios como Apple Music."
   },
@@ -235,7 +235,7 @@
     "asset": "MSFT",
     "name": "Microsoft Corporation",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Empresa líder en software, servicios en la nube y hardware, conocida por productos como Windows, Office y Azure."
   },
@@ -243,7 +243,7 @@
     "asset": "AMZN",
     "name": "Amazon.com, Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Gigante del comercio electrónico y servicios de computación en la nube, conocido por su plataforma de ventas online y AWS."
   },
@@ -251,7 +251,7 @@
     "asset": "META",
     "name": "Meta Platforms, Inc. (anteriormente Facebook)",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Empresa líder en redes sociales y realidad virtual, propietaria de plataformas como Facebook, Instagram y Oculus."
   },
@@ -259,7 +259,7 @@
     "asset": "GOOG",
     "name": "Alphabet Inc. (ex Google)",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Empresa matriz de Google, enfocada en tecnología de búsqueda, publicidad online, sistemas operativos y otros servicios tecnológicos."
   },
@@ -267,7 +267,7 @@
     "asset": "TSLA",
     "name": "Tesla, Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Empresa líder en vehículos eléctricos, energía renovable y soluciones de almacenamiento de energía."
   },
@@ -275,7 +275,7 @@
     "asset": "NFLX",
     "name": "Netflix, Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "technology",
     "country": "Estados Unidos",
     "description": "Plataforma de streaming de contenido multimedia, incluyendo series, películas y producciones originales."
   },
@@ -283,7 +283,7 @@
     "asset": "COST",
     "name": "Costco Wholesale Corporation",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "consumer_staples",
     "country": "Estados Unidos",
     "description": "Cadena de almacenes de membresía que ofrece productos al por mayor a precios competitivos."
   },
@@ -291,7 +291,7 @@
     "asset": "WMT",
     "name": "Walmart Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "consumer_staples",
     "country": "Estados Unidos",
     "description": "Gigante minorista global, operando tiendas de descuento, supermercados y comercio electrónico."
   },
@@ -299,7 +299,7 @@
     "asset": "KO",
     "name": "The Coca-Cola Company",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "consumer_staples",
     "country": "Estados Unidos",
     "description": "Multinacional de bebidas, conocida por sus productos como Coca-Cola, Fanta y Sprite."
   },
@@ -307,7 +307,7 @@
     "asset": "PEP",
     "name": "PepsiCo, Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "consumer_staples",
     "country": "Estados Unidos",
     "description": "Empresa líder en alimentos y bebidas, propietaria de marcas como Pepsi, Lay's y Quaker."
   },
@@ -315,7 +315,7 @@
     "asset": "PM",
     "name": "Philip Morris International Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "consumer_staples",
     "country": "Estados Unidos",
     "description": "Empresa multinacional de tabaco, conocida por marcas como Marlboro."
   },
@@ -323,7 +323,7 @@
     "asset": "CL",
     "name": "Colgate-Palmolive Company",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "consumer_staples",
     "country": "Estados Unidos",
     "description": "Empresa líder en productos de higiene personal, cuidado del hogar y cuidado oral."
   },
@@ -331,7 +331,7 @@
     "asset": "PG",
     "name": "Procter & Gamble Co.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "consumer_staples",
     "country": "Estados Unidos",
     "description": "Multinacional de bienes de consumo, con marcas como Tide, Gillette y Pampers."
   },
@@ -339,7 +339,7 @@
     "asset": "BRK-B",
     "name": "Berkshire Hathaway Inc. (Clase B)",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Conglomerado dirigido por Warren Buffett, con inversiones en múltiples sectores como seguros, energía y manufactura."
   },
@@ -347,7 +347,7 @@
     "asset": "JPM",
     "name": "JPMorgan Chase & Co.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Banco de inversión y servicios financieros líder, ofreciendo una amplia gama de servicios bancarios y financieros."
   },
@@ -355,7 +355,7 @@
     "asset": "V",
     "name": "Visa Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Empresa global de pagos electrónicos, facilitando transacciones financieras entre consumidores, comerciantes y bancos."
   },
@@ -363,7 +363,7 @@
     "asset": "MC",
     "name": "Mastercard Incorporated",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Corporación multinacional de tecnología en pagos, facilitando transacciones electrónicas en todo el mundo."
   },
@@ -371,7 +371,7 @@
     "asset": "BAC",
     "name": "Bank of America Corporation",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Banco global que ofrece servicios financieros, incluyendo banca minorista, inversiones y gestión de patrimonio."
   },
@@ -379,7 +379,7 @@
     "asset": "WFC",
     "name": "Wells Fargo & Company",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Institución financiera que proporciona servicios bancarios, hipotecarios y de inversión."
   },
@@ -387,7 +387,7 @@
     "asset": "MS",
     "name": "Morgan Stanley",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Firma global de servicios financieros, especializada en banca de inversión, gestión de patrimonio y mercados de valores."
   },
@@ -395,7 +395,7 @@
     "asset": "GS",
     "name": "Goldman Sachs Group, Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "financial",
     "country": "Estados Unidos",
     "description": "Firma líder en banca de inversión, gestión de inversiones y servicios financieros globales."
   },
@@ -403,7 +403,7 @@
     "asset": "LLY",
     "name": "Eli Lilly and Company",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "health_care",
     "country": "Estados Unidos",
     "description": "Empresa farmacéutica líder en investigación y desarrollo de medicamentos innovadores."
   },
@@ -411,7 +411,7 @@
     "asset": "UNH",
     "name": "UnitedHealth Group Incorporated",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "health_care",
     "country": "Estados Unidos",
     "description": "Compañía de servicios de salud diversificada, ofreciendo seguros de salud y servicios de atención médica."
   },
@@ -419,7 +419,7 @@
     "asset": "JNJ",
     "name": "Johnson & Johnson",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "health_care",
     "country": "Estados Unidos",
     "description": "Empresa multinacional enfocada en productos farmacéuticos, dispositivos médicos y bienes de consumo."
   },
@@ -427,7 +427,7 @@
     "asset": "ABBV",
     "name": "AbbVie Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "health_care",
     "country": "Estados Unidos",
     "description": "Compañía biofarmacéutica especializada en medicamentos innovadores para diversas áreas terapéuticas."
   },
@@ -435,7 +435,7 @@
     "asset": "MRK",
     "name": "Merck & Co., Inc.",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "health_care",
     "country": "Estados Unidos",
     "description": "Empresa líder en investigación y desarrollo de medicamentos, vacunas y productos para la salud."
   },
@@ -443,7 +443,7 @@
     "asset": "ABT",
     "name": "Abbott Laboratories",
     "asset_class": "equity",
-    "subclass": "equity",
+    "subclass": "health_care",
     "country": "Estados Unidos",
     "description": "Compañía global de atención médica que desarrolla productos médicos, diagnósticos y nutricionales."
   },

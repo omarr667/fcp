@@ -209,3 +209,31 @@ def get_assets_data_general(asset_names = None, query_where = None, kind='return
         merged.columns = [col.replace('_Close', '') for col in merged.columns]
         
     return merged
+
+
+def generate_index_universe():
+    ''' Regenera el universo de activos en la base de datos SQLite
+    '''
+    try:
+        # Carga el archivo JSON que contiene los activos a procesar
+                
+        with importlib.resources.open_text("fcp.fcp_data", "universe_assets.json", encoding='utf-8') as file:
+            universe_dict = json.load(file)
+            
+    
+        # Conecta a la base de datos SQLite
+    
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+        
+        # Convierte el universo de activos en un DataFrame y lo guarda en la base de datos
+        universe_df = pd.DataFrame(universe_dict)
+        universe_df.to_sql('universe', conn, if_exists="replace", index=False)
+    except FileNotFoundError:
+        print(f"El archivo fcp.fcp_data no se encontró.")
+    except sql.Error as e:
+        print(f"Error al trabajar con la base de datos: {e}")
+    except Exception as e:
+        print(f"Error general en generate_local_asset_universe: {e}")
+    finally:
+        conn.close()
