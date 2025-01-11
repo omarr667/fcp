@@ -3,7 +3,7 @@
 @author: Diplomado Finanzas Cuantitativas con Python
 """
 import matplotlib.pyplot as plt
-from fcp import data
+from fcp import data, classes
 
 
 def get_universe():
@@ -11,12 +11,23 @@ def get_universe():
 
 
 def get_assets_data(asset_names, kind='both'):
+    if type(asset_names) == str:
+        asset_names = [asset_names]
     df = data.get_assets_data_general(asset_names=asset_names, kind=kind)
     return df
 
 def get_assets_data_where(query_where, kind='both'):
     df = data.get_assets_data_general(query_where=query_where, kind=kind)
     return df
+
+def compute_betas(assets, benchmark):
+    betas = []
+    for asset in assets:
+        capm = classes.CapitalAssetPricingModel(benchmark, asset)
+        capm.load_data()
+        capm.compute_beta()
+        betas.append(capm.beta)
+    return betas
 
 
 # Forma 1: Correlación y varianza

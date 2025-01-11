@@ -25,13 +25,15 @@ class Distribution:
         self.is_normal = None
         self.var_95 = None
         self.median = None
+        self.quartile_1 = None
+        self.quartile_3 = None
         
     # cargar datos
     def load_data(self):
         self.timeseries = functions.get_assets_data([self.asset])
         self.vector_returns = self.timeseries[f'{self.asset}_Return']
     
-    # calcular mÃ©tricas
+    # calcular métricas
     def compute_metrics(self):
         factor = 252
         self.mean_annual = np.mean(self.vector_returns) * factor
@@ -45,6 +47,8 @@ class Distribution:
         self.is_normal = (self.jarque_bera_p_value > 0.05)
         self.var_95 = np.percentile(self.vector_returns,5)
         self.median = np.median(self.vector_returns)
+        self.quartile_1 = np.percentile(self.vector_returns,25)
+        self.quartile_3 = np.percentile(self.vector_returns,75)   
         
     # plot histograma
     def plot_histogram(self):
@@ -52,9 +56,7 @@ class Distribution:
         plt.hist(self.vector_returns, bins=100)
         plt.title(f'Histograma de {self.asset}')
         plt.show()
-
-
-
+        
         
 class CapitalAssetPricingModel:
     
@@ -121,5 +123,63 @@ class CapitalAssetPricingModel:
         plt.legend()
         plt.grid(True)
         plt.show()
+        
+
+class Hedger:
     
-    
+    # constructor
+    def __init__(self, position, benchmark, hedge_assets):
+        self.position_assets = list(position.keys())
+        self.position_betas = None
+        self.position_weights = list(position.values())
+        self.position_delta_usd = None
+        self.position_notional_usd = None
+        self.position_beta_usd = None
+        self.df_position = None
+        self.benchmark = benchmark
+        self.hedge_assets = hedge_assets
+        self.hedge_betas = None
+        self.hedge_weights = None
+        self.hedge_delta_usd = None
+        self.hedge_notional_usd = None
+        self.hedge_beta_usd = None
+        self.df_hedge = None
+                
+    # calcular betas
+    def compute_betas(self):
+        #position
+        self.position_betas = functions.compute_betas(self.position_assets, self.benchmark)
+        self.position_delta_usd = sum(self.position_weights)
+        self.position_notional_usd = sum(np.abs(list(self.position_weights)))
+        b = np.array(self.position_betas)
+        x = np.array(self.position_weights)
+        self.position_beta_usd = np.dot(b,x)
+        df_position = pd.DataFrame(
+            {'asset': self.position_assets, 
+             'beta': self.position_betas,
+             'weight': self.position_weights
+             })
+        self.df_position = df_position.set_index('asset')
+        
+        # hedge
+        self.hedge_betas = functions.compute_betas(self.hedge_assets, self.benchmark)
+        
+    # calcular cobertura
+    def compute_hedge(self):
+        A = np.array([[1,1],
+                      self.hedge_betas
+                      ])
+        b = np.array([[-self.position_delta_usd],
+                      [-self.position_beta_usd]
+                      ])
+        self.hedge_weights = np.linalg.inv(A).dot(b).flatten()
+        df_hedge = pd.DataFrame(
+            {'asset': self.hedge_assets, 
+             'beta': self.hedge_betas,
+             'weight': self.hedge_weights
+             })
+        self.df_hedge = df_hedge.set_index('asset')
+        self.hedge_delta_usd = df_hedge['weight'].sum()
+        self.hedge_notional_usd = np.abs(df_hedge['weight']).sum()
+        x = df_hedge['weight'].values
+        self.hedge_beta_usd = np.dot(self.hedge_betas,x)
