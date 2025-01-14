@@ -4,6 +4,7 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 import importlib
+from scipy.optimize import minimize
 from fcp import functions
 importlib.reload(functions)
 
@@ -144,7 +145,7 @@ class Hedger:
         self.hedge_notional_usd = None
         self.hedge_beta_usd = None
         self.df_hedge = None
-                
+             
     # calcular betas
     def compute_betas(self):
         #position
@@ -164,8 +165,10 @@ class Hedger:
         # hedge
         self.hedge_betas = functions.compute_betas(self.hedge_assets, self.benchmark)
         
-    # calcular cobertura
-    def compute_hedge(self):
+    # calcular cobertura exacta - sólo por referencia
+    def compute_hedge_exact(self):
+        if len(self.hedge_assets) != 2:
+            raise ValueError("Error: dim(hedge_assets) debe ser 2.")
         A = np.array([[1,1],
                       self.hedge_betas
                       ])
@@ -183,3 +186,24 @@ class Hedger:
         self.hedge_notional_usd = np.abs(df_hedge['weight']).sum()
         x = df_hedge['weight'].values
         self.hedge_beta_usd = np.dot(self.hedge_betas,x)
+          
+    # calcular cobertura numérica
+    def compute_hedge(self, regularization=0.0):
+        x0 = [self.position_delta_usd / len(self.hedge_assets)] * len(self.hedge_betas)
+        args = (self.position_delta_usd,
+                self.position_beta_usd,
+                self.hedge_betas,
+                regularization)
+        result = minimize(functions.cost_function_hedge, x0=x0, args=args)
+        self.hedge_weights = result.x
+        df_hedge = pd.DataFrame(
+            {'asset': self.hedge_assets, 
+             'beta': self.hedge_betas,
+             'weight': self.hedge_weights
+             })
+        self.df_hedge = df_hedge.set_index('asset')
+        self.hedge_delta_usd = df_hedge['weight'].sum()
+        self.hedge_notional_usd = np.abs(df_hedge['weight']).sum()
+        x = df_hedge['weight'].values
+        self.hedge_beta_usd= np.dot(self.hedge_betas,x)
+        

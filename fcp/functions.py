@@ -4,6 +4,7 @@
 """
 import matplotlib.pyplot as plt
 from fcp import data, classes
+import numpy as np
 
 
 def get_universe():
@@ -16,9 +17,11 @@ def get_assets_data(asset_names, kind='both'):
     df = data.get_assets_data_general(asset_names=asset_names, kind=kind)
     return df
 
+
 def get_assets_data_where(query_where, kind='both'):
     df = data.get_assets_data_general(query_where=query_where, kind=kind)
     return df
+
 
 def compute_betas(assets, benchmark):
     betas = []
@@ -28,6 +31,35 @@ def compute_betas(assets, benchmark):
         capm.compute_beta()
         betas.append(capm.beta)
     return betas
+
+
+def cost_function_hedge(x,
+                        position_delta_usd,
+                        position_beta_usd,
+                        hedge_betas,
+                        regularization):
+    f1 = (np.sum(x) + position_delta_usd)**2
+    f2 = (np.dot(hedge_betas,x) + position_beta_usd)**2
+    f3 = regularization * np.sum(np.array(x)**2)
+    f = f1 + f2 + f3
+    return f
+    
+
+# def compute_factors(asset, benchmarks):
+#     factors = []
+#     for benchmark in benchmarks:
+#         capm = classes.CapitalAssetPricingModel(benchmark, asset)
+#         capm.load_data()
+#         capm.compute_beta()
+#         factors.append(capm.beta)
+#     return factors
+
+
+
+
+
+
+
 
 
 # Forma 1: Correlación y varianza
