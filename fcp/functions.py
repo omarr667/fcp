@@ -45,14 +45,14 @@ def cost_function_hedge(x,
     return f
     
 
-# def compute_factors(asset, benchmarks):
-#     factors = []
-#     for benchmark in benchmarks:
-#         capm = classes.CapitalAssetPricingModel(benchmark, asset)
-#         capm.load_data()
-#         capm.compute_beta()
-#         factors.append(capm.beta)
-#     return factors
+def compute_factors(asset, benchmarks):
+    factors = []
+    for benchmark in benchmarks:
+        capm = classes.CapitalAssetPricingModel(benchmark, asset)
+        capm.load_data()
+        capm.compute_beta()
+        factors.append(capm.beta)
+    return factors
 
 
 
