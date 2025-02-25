@@ -207,3 +207,14 @@ class Hedger:
         x = df_hedge['weight'].values
         self.hedge_beta_usd= np.dot(self.hedge_betas,x)
         
+
+
+class Portfolio:
+    # constructor
+    def __init__(self, assets, notional, weights):
+        self.assets = assets
+        self.notional = notional
+        self.weights = weights
+        self.port_type = None
+        self.mean_annual = None 
+        self.volatility_annual = None
