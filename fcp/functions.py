@@ -101,6 +101,10 @@ def compute_correlations(asset, factors):
     return correl
 
 
+def compute_portfolio_variance(weights, mtx_cov):
+    return np.matmul(np.transpose(weights), np.matmul(mtx_cov,weights))
+
+
 def cost_function_hedge(
     x, position_delta_usd, position_beta_usd, hedge_betas, regularization
 ):

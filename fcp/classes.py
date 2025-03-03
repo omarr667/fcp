@@ -32,7 +32,7 @@ class Distribution:
     # cargar datos
     def load_data(self):
         self.timeseries = functions.get_assets_data([self.asset])
-        self.vector_returns = self.timeseries[f'{self.asset}_Return']
+        self.vector_returns = self.timeseries[f'{self.asset}']
     
     # calcular métricas
     def compute_metrics(self):
@@ -206,15 +206,157 @@ class Hedger:
         self.hedge_notional_usd = np.abs(df_hedge['weight']).sum()
         x = df_hedge['weight'].values
         self.hedge_beta_usd= np.dot(self.hedge_betas,x)
-        
 
 
-class Portfolio:
+class PortfolioManager:
+    
     # constructor
-    def __init__(self, assets, notional, weights):
+    def __init__(self, assets, notional=1, benchmark='^SPX'):
         self.assets = assets
         self.notional = notional
+        self.benchmark = benchmark
+        self.df_returns = None
+        self.mtx_covar = None
+        self.mtx_correl = None
+        self.volatilities_annual = None
+        self.betas = None
+        self.means_annual = None
+        
+    # recuperar rendimientos y matriz de varianza-covarianza
+    def get_data(self):
+        factor = 252 # para anualizar métricas
+        df_returns = functions.get_assets_data(self.assets)
+        v = df_returns
+        mtx_covar = df_returns.cov() * factor
+        self.mtx_covar = mtx_covar
+        self.mtx_correl = df_returns.corr()
+        self.volatilities_annual = np.sqrt(np.diag(mtx_covar))
+        self.betas = functions.compute_betas(self.assets, self.benchmark)
+        self.means_annual = np.array(df_returns.mean()) * factor
+        self.df_returns = df_returns
+        
+    # calcular portafolios óptimos según el tipo deseado
+    def compute_portfolio(self, port_type='equi_weight', target_return=None):
+        
+        # constraints o restricciones
+        L1_norm = [{"type": "eq", "fun": lambda x: sum(abs(x)) - 1}]
+        L2_norm = [{"type": "eq", "fun": lambda x: sum(x**2) - 1}]
+        markowitz = [{"type": "eq", "fun": lambda x: np.dot(x, self.means_annual) - target_return}]
+        
+        # bounds o condiciones de frontera
+        non_negative = [(0, None) for a in self.assets]
+        
+        # condicion inicial: portafolios equiponderado
+        x0 = np.array([1.0 / len(self.assets) for a in self.assets])
+        
+        #verificar tipo de portafolios y calcular pesos
+        if port_type == 'long_only':
+            # optimización
+            result = minimize(fun=functions.compute_portfolio_variance,
+                              args=(self.mtx_covar),
+                              x0=x0, 
+                              constraints=(L1_norm), 
+                              bounds=non_negative)
+            # variables de portafolios
+            weights = result.x
+        
+        elif port_type == 'min_variance_L1':
+            # optimización
+            result = minimize(fun=functions.compute_portfolio_variance,
+                              args=(self.mtx_covar),
+                              x0=x0, 
+                              constraints=(L1_norm), 
+                              bounds=None)
+            # variables de portafolios
+            weights = result.x
+            
+        elif port_type == 'min_variance_L2':
+            # optimización
+            result = minimize(fun=functions.compute_portfolio_variance,
+                              args=(self.mtx_covar),
+                              x0=x0, 
+                              constraints=(L2_norm), 
+                              bounds=None)
+            # variables de portafolios
+            weights = result.x
+            
+        elif port_type == 'beta_weighted':
+            weights = np.array(self.betas)
+            
+        elif port_type == 'volatility_weighted':
+            weights = np.array(1 / self.volatilities_annual)
+            
+        elif port_type == 'markowitz':
+            if target_return == None:
+                target_return = np.mean(self.means_annual)
+            # optimización
+            result = minimize(fun=functions.compute_portfolio_variance,
+                              args=(self.mtx_covar),
+                              x0=x0, 
+                              constraints=(L1_norm + markowitz), 
+                              bounds=non_negative)
+            # variables de portafolios
+            weights = result.x
+            
+        else:
+            # por default, equiponderado
+            weights = x0
+        
+        weights = weights / sum(abs(weights)) # pesos unitarios o en porcentaje
+        port = self.compute_metrics(port_type, weights)
+        
+        return port
+
+                               
+    def compute_metrics(self, port_type, weights):
+        allocation = self.notional * weights # pesos en USD
+        # calcular métricas de portafolios
+        mean_annual = np.dot(weights, self.means_annual)
+        volatility_annual = np.sqrt(functions.compute_portfolio_variance(weights, self.mtx_covar))
+        sharpe_ratio = mean_annual / volatility_annual if volatility_annual > 0 else None
+        # calcular la serie de tiempo de los rendimientos del portafolios
+        returns = []
+        for i in range(len(self.assets)):
+            asset = self.assets[i]
+            w = weights[i]
+            ts = np.array(self.df_returns[asset])
+            if len(returns) == 0:
+                returns = w * ts
+            else:
+                returns += w * ts
+        # salida de la optimización de portafolios
+        port = Portfolio(self.assets, 
+                         self.notional, 
+                         port_type, 
+                         weights,
+                         allocation,
+                         mean_annual,
+                         volatility_annual,
+                         sharpe_ratio,
+                         returns)
+        return port
+        
+        
+class Portfolio:
+    
+    # constructor
+    def __init__(self, assets, notional, port_type, weights,
+                 allocation, mean_annual, volatility_annual, 
+                 sharpe_ratio, returns):
+        self.assets = assets
+        self.notional = notional
+        self.port_type = port_type
         self.weights = weights
-        self.port_type = None
-        self.mean_annual = None 
-        self.volatility_annual = None
+        self.allocation = allocation
+        self.mean_annual = mean_annual 
+        self.volatility_annual = volatility_annual
+        self.sharpe_ratio = sharpe_ratio
+        self.returns = returns
+        
+    # plot del histograma del portafolios
+    def plot_histogram(self):
+        plt.figure()
+        plt.hist(self.returns, bins=100)
+        plt.title(f'Histograma del portafolios {self.port_type}')
+        plt.show()
+        
