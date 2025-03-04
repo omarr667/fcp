@@ -394,7 +394,8 @@ class Portfolio:
         plt.hist(self.returns, bins=100)
         plt.title(f'Histograma del portafolios {self.port_type}')
         plt.show()
-        
+        return plt
+
     # plot de la timeseries del portafolios y de sus activos
     def plot_timeseries(self, assets_to_plot = None):
         plt.figure()
@@ -411,4 +412,6 @@ class Portfolio:
             df[asset] = 100 * df[asset] / df[asset][0]
         df.plot()
         plt.show()
+        return plt
+        
         
