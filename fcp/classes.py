@@ -310,6 +310,7 @@ class PortfolioManager:
                                
     def compute_metrics(self, port_type, weights):
         allocation = self.notional * weights # pesos en USD
+        
         # calcular métricas de portafolios
         mean_annual = np.dot(weights, self.means_annual)
         volatility_annual = np.sqrt(functions.compute_portfolio_variance(weights, self.mtx_covar))
@@ -324,12 +325,35 @@ class PortfolioManager:
                 returns = w * ts
             else:
                 returns += w * ts
+        df_returns = self.df_returns.copy()
+        df_returns[f'port_{port_type}'] = returns
+                
+        # calcular métricas diarias basadas en la clase Distribution
+        mean = np.mean(returns)
+        median = np.median(returns)
+        var_95 = np.percentile(returns, 5)
+        skewness = st.skew(returns)
+        kurtosis = st.kurtosis(returns)
+        n = len(returns)
+        jarque_bera_stat = n/6*(skewness**2 + 1/4*kurtosis**2)
+        jarque_bera_p_value = 1 - st.chi2.cdf(jarque_bera_stat, df=2)
+        is_normal = (jarque_bera_p_value > 0.05)
+                
         # salida de la optimización de portafolios
         port = Portfolio(self.assets, 
                          self.notional, 
                          port_type, 
                          weights,
                          allocation,
+                         df_returns,
+                         mean,
+                         median,
+                         var_95,
+                         skewness,
+                         kurtosis,
+                         jarque_bera_stat,
+                         jarque_bera_p_value,
+                         is_normal,
                          mean_annual,
                          volatility_annual,
                          sharpe_ratio,
@@ -341,13 +365,24 @@ class Portfolio:
     
     # constructor
     def __init__(self, assets, notional, port_type, weights,
-                 allocation, mean_annual, volatility_annual, 
-                 sharpe_ratio, returns):
+                 allocation, df_returns, mean, median, var_95, 
+                 skewness, kurtosis, jarque_bera_stat, 
+                 jarque_bera_p_value,is_normal, mean_annual, 
+                 volatility_annual, sharpe_ratio, returns):
         self.assets = assets
         self.notional = notional
         self.port_type = port_type
         self.weights = weights
         self.allocation = allocation
+        self.df_returns = df_returns
+        self.mean = mean
+        self.median = median
+        self.var_95 = var_95
+        self.skewness = skewness
+        self.kurtosis = kurtosis
+        self.jarque_bera_stat = jarque_bera_stat
+        self.jarque_bera_p_value = jarque_bera_p_value
+        self.is_normal = is_normal
         self.mean_annual = mean_annual 
         self.volatility_annual = volatility_annual
         self.sharpe_ratio = sharpe_ratio
@@ -358,5 +393,22 @@ class Portfolio:
         plt.figure()
         plt.hist(self.returns, bins=100)
         plt.title(f'Histograma del portafolios {self.port_type}')
+        plt.show()
+        
+    # plot de la timeseries del portafolios y de sus activos
+    def plot_timeseries(self, assets_to_plot = None):
+        plt.figure()
+        df = pd.DataFrame()
+        pname = f'port_{self.port_type}'
+        df[pname] = (1 + self.df_returns[pname]).cumprod()
+        df[pname] = 100 * df[pname] / df[pname][0]
+        if assets_to_plot == None:
+            assets_to_plot =self.assets
+        else:
+            assets_to_plot = list(set(assets_to_plot) & set(self.assets))
+        for asset in assets_to_plot:
+            df[asset] = (1 + self.df_returns[asset]).cumprod()
+            df[asset] = 100 * df[asset] / df[asset][0]
+        df.plot()
         plt.show()
         

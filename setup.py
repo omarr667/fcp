@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fcp',
-    version='0.1.0',
+    version='0.1.1',
     description="Un paquete de utilidades para el curso de diplamado de finanzas con Python de la Facultad de Ciencias (UNAM)",  
     author="Facultad de ciencias",  
     author_email="omarr667@gmail.com", 
