@@ -218,9 +218,7 @@ class PortfolioManager:
         self.df_returns = None
         self.mtx_covar = None
         self.mtx_correl = None
-        self.volatilities_annual = None
-        self.betas = None
-        self.means_annual = None
+        self.df_metrics = None
         
     # recuperar rendimientos y matriz de varianza-covarianza
     def get_data(self):
@@ -230,9 +228,17 @@ class PortfolioManager:
         mtx_covar = df_returns.cov() * factor
         self.mtx_covar = mtx_covar
         self.mtx_correl = df_returns.corr()
-        self.volatilities_annual = np.sqrt(np.diag(mtx_covar))
-        self.betas = functions.compute_betas(self.assets, self.benchmark)
-        self.means_annual = np.array(df_returns.mean()) * factor
+        means_annual = np.array(df_returns.mean()) * factor
+        volatilities_annual = np.sqrt(np.diag(mtx_covar))
+        sharpe_ratio = means_annual / volatilities_annual
+        betas = functions.compute_betas(self.assets, self.benchmark)
+        self.df_metrics = pd.DataFrame(
+            data={'asset':self.assets,
+                  'mean_annual':means_annual,
+                  'volatility_annual':volatilities_annual,
+                  'sharpe_ratio':sharpe_ratio,
+                  'beta':betas})
+        self.df_metrics.set_index('asset',inplace=True)
         self.df_returns = df_returns
         
     # calcular portafolios óptimos según el tipo deseado
@@ -241,7 +247,7 @@ class PortfolioManager:
         # constraints o restricciones
         L1_norm = [{"type": "eq", "fun": lambda x: sum(abs(x)) - 1}]
         L2_norm = [{"type": "eq", "fun": lambda x: sum(x**2) - 1}]
-        markowitz = [{"type": "eq", "fun": lambda x: np.dot(x, self.means_annual) - target_return}]
+        markowitz = [{"type": "eq", "fun": lambda x: np.dot(x, self.df_metrics['mean_annual']) - target_return}]
         
         # bounds o condiciones de frontera
         non_negative = [(0, None) for a in self.assets]
@@ -281,14 +287,14 @@ class PortfolioManager:
             weights = result.x
             
         elif port_type == 'beta_weighted':
-            weights = np.array(self.betas)
+            weights = np.array(self.df_metrics['beta'])
             
         elif port_type == 'volatility_weighted':
-            weights = np.array(1 / self.volatilities_annual)
+            weights = np.array(1 / self.df_metrics['volatilitity_annual'])
             
         elif port_type == 'markowitz':
             if target_return == None:
-                target_return = np.mean(self.means_annual)
+                target_return = np.mean(self.df_metrics['mean_annual'])
             # optimización
             result = minimize(fun=functions.compute_portfolio_variance,
                               args=(self.mtx_covar),
@@ -312,9 +318,9 @@ class PortfolioManager:
         allocation = self.notional * weights # pesos en USD
         
         # calcular métricas de portafolios
-        mean_annual = np.dot(weights, self.means_annual)
+        mean_annual = np.dot(weights, self.df_metrics['mean_annual'])
         volatility_annual = np.sqrt(functions.compute_portfolio_variance(weights, self.mtx_covar))
-        sharpe_ratio = mean_annual / volatility_annual if volatility_annual > 0 else None
+        sharpe_ratio = mean_annual / volatility_annual
         # calcular la serie de tiempo de los rendimientos del portafolios
         returns = []
         for i in range(len(self.assets)):
@@ -395,7 +401,7 @@ class Portfolio:
         plt.title(f'Histograma del portafolios {self.port_type}')
         plt.show()
         return plt
-
+        
     # plot de la timeseries del portafolios y de sus activos
     def plot_timeseries(self, assets_to_plot = None):
         plt.figure()
@@ -413,5 +419,4 @@ class Portfolio:
         df.plot()
         plt.show()
         return plt
-        
         
