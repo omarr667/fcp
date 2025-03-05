@@ -290,7 +290,7 @@ class PortfolioManager:
             weights = np.array(self.df_metrics['beta'])
             
         elif port_type == 'volatility_weighted':
-            weights = np.array(1 / self.df_metrics['volatilitity_annual'])
+            weights = np.array(1 / self.df_metrics['volatility_annual'])
             
         elif port_type == 'markowitz':
             if target_return == None:
