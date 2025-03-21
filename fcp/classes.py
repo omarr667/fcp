@@ -242,11 +242,12 @@ class PortfolioManager:
         self.df_returns = df_returns
         
     # calcular portafolios óptimos según el tipo deseado
-    def compute_portfolio(self, port_type='equi_weight', target_return=None):
+    def compute_portfolio(self, port_type='equi_weight', **kwargs):#   target_return=None) :
         
         # constraints o restricciones
         L1_norm = [{"type": "eq", "fun": lambda x: sum(abs(x)) - 1}]
         L2_norm = [{"type": "eq", "fun": lambda x: sum(x**2) - 1}]
+        target_return = kwargs.get('target_return', None)
         markowitz = [{"type": "eq", "fun": lambda x: np.dot(x, self.df_metrics['mean_annual']) - target_return}]
         
         # bounds o condiciones de frontera
@@ -303,6 +304,21 @@ class PortfolioManager:
                               bounds=non_negative)
             # variables de portafolios
             weights = result.x
+
+        elif port_type == 'external':
+            external_weights = kwargs.get('weights', [])
+            
+            if not external_weights and len(external_weights) == len(self.assets):
+                try:
+                    weights = np.array(external_weights)
+                except:
+                    print("Error: 'weights' debe ser un vector de pesos.")
+                    weights = x0    
+            else:
+                print("Error: 'weights' no puede ser None. Se usará el portafolio equiponderado.")
+                weights = x0
+        
+
             
         else:
             # por default, equiponderado
