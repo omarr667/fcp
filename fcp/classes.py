@@ -308,7 +308,7 @@ class PortfolioManager:
         elif port_type == 'external':
             external_weights = kwargs.get('weights', [])
             
-            if not external_weights and len(external_weights) == len(self.assets):
+            if external_weights and len(external_weights) == len(self.assets):
                 try:
                     weights = np.array(external_weights)
                 except:
