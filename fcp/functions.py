@@ -5,7 +5,7 @@
 import matplotlib.pyplot as plt
 from fcp import data, classes
 import numpy as np
-
+import scipy.stats as st
 
 def get_universe():
     """
@@ -403,3 +403,40 @@ def plot_comparing_two_timeseries(assets, assets_df):
         print(f"Error en los datos: {e}")
     except Exception as e:
         print(f"Error inesperado: {e}")
+
+
+
+
+def call_price(inputs, t=None):
+    t = t or inputs.t
+    tau = inputs.T - t
+    d1 = 1/(inputs.sigma*np.sqrt(tau)) * \
+        (np.log(inputs.S_t / inputs.K) + \
+         (inputs.r + 0.5* inputs.sigma**2) * tau)
+    d2 = d1 - inputs.sigma*np.sqrt(tau)
+    c = inputs.S_t * st.norm.cdf(d1) -\
+        inputs.K * np.exp(-inputs.r * tau) * st.norm.cdf(d2)
+    return c
+
+
+def put_price(inputs, t=None):
+    t = t or inputs.t
+    tau = inputs.T - t
+    d1 = 1/(inputs.sigma*np.sqrt(tau)) * \
+        (np.log(inputs.S_t / inputs.K) + \
+         (inputs.r + 0.5* inputs.sigma**2) * tau)
+    d2 = d1 - inputs.sigma*np.sqrt(tau)
+    p = inputs.K * np.exp(-inputs.r * tau) * st.norm.cdf(-d2) -\
+        inputs.S_t * st.norm.cdf(-d1)        
+    return p
+
+
+class Inputs:
+    def __init__(self):
+        self.r = None
+        self.sigma = None
+        self.t = None
+        self.T = None
+        self.S_t = None
+        self.K = None
+   
