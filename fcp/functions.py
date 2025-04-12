@@ -430,6 +430,14 @@ def put_price(inputs, t=None):
         inputs.S_t * st.norm.cdf(-d1)        
     return p
 
+def call_delta(inputs, t=None):
+    t = t or inputs.t
+    tau = inputs.T - t
+    d1 = 1/(inputs.sigma*np.sqrt(tau)) * \
+        (np.log(inputs.S_t / inputs.K) + \
+         (inputs.r + 0.5* inputs.sigma**2) * tau)
+    d = st.norm.cdf(d1)
+    return d 
 
 class Inputs:
     def __init__(self):
