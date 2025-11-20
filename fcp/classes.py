@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import importlib
 from scipy.optimize import minimize
-from fcp import functions
+from fcp import functions, data
 importlib.reload(functions)
 
 
@@ -14,49 +14,42 @@ class Distribution:
     # constructor
     def __init__(self, asset):
         self.asset = asset
-        self.timeseries = None
-        self.vector_returns = None
+        self.df_prices = data.get_prices(self.asset)
+        self.df_returns = data.get_returns(self.asset)
+        self.vec_returns = self.df_returns[self.asset].values
+        self.mean = None
+        self.volatility = None
         self.mean_annual = None
         self.volatility_annual = None
         self.sharpe_ratio = None
-        self.skewness = None
-        self.kurtosis = None
-        self.jarque_bera_stat = None
-        self.jarque_bera_p_value = None
-        self.is_normal = None
-        self.var_95 = None
         self.median = None
-        self.quartile_1 = None
-        self.quartile_3 = None
-        
-    # cargar datos
-    def load_data(self):
-        self.timeseries = functions.get_assets_data([self.asset])
-        self.vector_returns = self.timeseries[f'{self.asset}']
+        self.var_95 = None
     
-    # calcular métricas
-    def compute_metrics(self):
-        factor = 252
-        self.mean_annual = np.mean(self.vector_returns) * factor
-        self.volatility_annual = np.std(self.vector_returns) * np.sqrt(factor)
-        self.sharpe_ratio = self.mean_annual / self.volatility_annual if self.volatility_annual > 0.0 else 0.0
-        self.skewness = st.skew(self.vector_returns)
-        self.kurtosis = st.kurtosis(self.vector_returns)
-        n = len(self.vector_returns)
-        self.jarque_bera_stat = n/6*(self.skewness**2 + 1/4*self.kurtosis**2)
-        self.jarque_bera_p_value = 1 - st.chi2.cdf(self.jarque_bera_stat, df=2)
-        self.is_normal = (self.jarque_bera_p_value > 0.05)
-        self.var_95 = np.percentile(self.vector_returns,5)
-        self.median = np.median(self.vector_returns)
-        self.quartile_1 = np.percentile(self.vector_returns,25)
-        self.quartile_3 = np.percentile(self.vector_returns,75)   
+    # método o función de plot de serie de tiempo de precios de cierre
+    def plot_prices(self):
+        self.df_prices.plot()
         
-    # plot histograma
+    # método o función de plot de serie de tiempo de rendimientos
+    def plot_returns(self):
+        self.df_returns.plot()
+        
+    # método o función de plot del histograma de rendimientos
     def plot_histogram(self):
         plt.figure()
-        plt.hist(self.vector_returns, bins=100)
+        plt.hist(self.vec_returns, bins=100)
         plt.title(f'Histograma de {self.asset}')
         plt.show()
+        
+    # método o función para calcular métricas de riesgo   
+    def compute(self):
+        factor_annual = 252
+        self.mean = np.mean(self.vec_returns)
+        self.volatility = np.std(self.vec_returns)
+        self.mean_annual = self.mean * factor_annual
+        self.volatility_annual = self.volatility * np.sqrt(factor_annual)
+        self.sharpe_ratio = self.mean_annual / self.volatility_annual
+        self.median = np.median(self.vec_returns)
+        self.var_95 = np.percentile(self.vec_returns, 5)
         
         
 class CapitalAssetPricingModel:

@@ -497,7 +497,7 @@
   },
   {
     "asset": "DAI-USD",
-    "name": "Dai (DAI)",
+    "name": "DAI",
     "asset_class": "crypto",
     "subclass": "stablecoin",
     "country": "Descentralizado",
@@ -509,8 +509,17 @@
     "asset_class": "crypto",
     "subclass": "stablecoin",
     "country": "Descentralizado",
-    "description": "Stablecoin parcialmente respaldada por reservas de criptomonedas y diseñada para mantener una paridad estable con el dólar estadounidense."
+    "description": "Stablecoin algorítmica diseñada para mantener una paridad estable con el dólar estadounidense."
   },
+  {
+    "asset": "USDD-USD",
+    "name": "USDD (USDD)",
+    "asset_class": "crypto",
+    "subclass": "stablecoin",
+    "country": "Descentralizado",
+    "description": "Stablecoin algorítmica diseñada para mantener una paridad estable con el dólar estadounidense."
+  },
+
   {
     "asset": "EURUSD=X",
     "name": "Euro (EUR/USD)",

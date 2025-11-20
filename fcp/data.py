@@ -99,6 +99,84 @@ def generate_local_asset_universe(start_date, end_date):
 ### Sólo ejecuta 1 vez para cargar el universo
 # generate_local_asset_universe('2021-01-01', '2024-10-31')
 
+
+def get_universe():
+    """
+    Función para ver la tabla del universo de activos
+
+    Returns
+    -------
+    None.
+    """
+    try:
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+
+        df = pd.read_sql("SELECT * FROM universe;", conn)
+        conn.close()
+        
+        return df
+    except sql.Error as e:
+        print(f"Error al obtener la base del universo de activos {e}")
+
+
+def get_prices(asset):
+    """
+    Función para obtener los precios de cierre
+    
+    Parameters
+    ----------
+    asset : Ticker del activo
+
+    Returns df: con los precios de cierre
+    """
+    try:
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+        df = pd.read_sql(f"SELECT Date, Close As '{asset}' FROM \"{asset}\";", conn)
+        conn.close()
+        df = df.dropna()
+        
+        return df
+    except sql.Error as e:
+        print(f"Error al obtener la base del universo de activos {e}")
+
+    
+def get_returns(asset):
+    """
+    Función que genera los rendimientos de una acción    
+
+    Parameters
+    ----------
+    asset : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    try:
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+    
+        df = pd.read_sql(f"SELECT Date, Close FROM \"{asset}\";", conn)
+        
+        # Opción 1
+        #df["return"] = (df["Close"]-df["Close"].shift(1))/df["Close"].shift(1)
+        # Opción 2 
+        df[asset] = df["Close"].pct_change()
+        
+        df = df[["Date", asset]]
+        df = df.dropna()
+        return df
+    except sql.Error as e:
+        print(f"Error al obtener la base del universo de activos {e}")
+
+
+
+
+
 # Obtiene datos de la base de datos
 def get_asset_data(asset_name=None, where=None, query=None):
     """
