@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats as st
+from scipy import stats as sci
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,6 +25,10 @@ class Distribution:
         self.sharpe_ratio = None
         self.median = None
         self.var_95 = None
+        self.skewness = None
+        self.kurtosis = None
+        self.p_value = None
+        self.is_normal = None
     
     # método o función de plot de serie de tiempo de precios de cierre
     def plot_prices(self):
@@ -43,6 +48,7 @@ class Distribution:
     # método o función para calcular métricas de riesgo   
     def compute(self):
         factor_annual = 252
+        alpha = 0.95
         self.mean = np.mean(self.vec_returns)
         self.volatility = np.std(self.vec_returns)
         self.mean_annual = self.mean * factor_annual
@@ -50,53 +56,70 @@ class Distribution:
         self.sharpe_ratio = self.mean_annual / self.volatility_annual
         self.median = np.median(self.vec_returns)
         self.var_95 = np.percentile(self.vec_returns, 5)
+        n = len(self.vec_returns)
+        self.skewness = sci.skew(self.vec_returns)
+        self.kurtosis = sci.kurtosis(self.vec_returns)
+        jb = n/6 * (self.skewness**2 + 1/4*self.kurtosis**2)
+        self.p_value = 1 - sci.chi2.cdf(jb, df=2)
+        self.is_normal = bool(self.p_value >= 1-alpha)
         
         
 class CapitalAssetPricingModel:
-    
+     
     # constructor
     def __init__(self, benchmark, asset):
-        self.benchmark = benchmark # benchmark
-        self.asset = asset # activo
-        self.assets = [benchmark, asset]
-        self.df = None
-        self.df_close = None
-        self.df_return = None
+        self.benchmark = benchmark
+        self.asset = asset
+        self.df_prices = data.get_prices([benchmark, asset])
+        self.df_returns = data.get_returns([benchmark, asset])
         self.alpha = None
         self.beta = None
         self.correlation = None
-        self.r_squared = None
         self.p_value = None
         self.null_hypothesis = None
-        self.y_predictor = None
+        self.predictor = None
+         
+    # plot de precios
+    def plot_prices(self):
+        plt.figure(figsize=(12, 6))
+        plt.title("Comparación de Precios de Cierre", fontsize=14)
+        ax = plt.gca()
+        self.df_prices.plot(
+            kind="line",
+            x='Date',
+            y=self.benchmark,
+            ax=ax,
+            grid=True,
+            color="red",
+            label= f"{self.benchmark} (Cierre)",
+        )
+        self.df_prices.plot(
+            kind="line",
+            secondary_y=True,
+            x='Date',
+            y=self.asset,
+            ax=ax,
+            grid=True,
+            color="blue",
+            label= f"{self.asset} (Cierre)",
+        )
+        ax.legend(loc="upper left", fontsize=10)
+        ax.right_ax.legend(loc="upper right", fontsize=10)  # Leyenda del eje secundario
+        plt.tight_layout()
+        plt.show()
         
-    # cargar los datos de series de tiempo de los activos
-    def load_data(self):
-        self.df = functions.get_assets_data(self.assets)
-        self.df_close = functions.get_assets_data(self.assets, 'close')
-        self.df_return = functions.get_assets_data(self.assets, 'return')
-        self.x_return = np.array(self.df_return[self.benchmark]) # benchmark
-        self.y_return = np.array(self.df_return[self.asset]) # activo
+    # calcular la regresión lineal del CAPM
+    def compute(self):
+        x = self.df_returns[self.benchmark].values
+        y = self.df_returns[self.asset].values
+        self.beta, self.alpha, self.correlation, self.p_value, se = sci.linregress(x, y) # esto es el CAPM
+        self.r_squared = self.correlation**2
+        self.null_hypothesis = bool(self.p_value >= 0.05)
+        self.predictor = self.alpha + self.beta*x
         
-    # calcular el beta y otras métricas relativas
-    def compute_beta(self):
-        x = np.array(self.df_return[self.benchmark]) # benchmark
-        y = np.array(self.df_return[self.asset]) # activo
-        slope, intercept, r_value, p_value, std_err = st.linregress(self.x_return,self.y_return)
-        self.alpha = intercept
-        self.beta = slope
-        self.correlation = r_value
-        self.r_squared = r_value**2
-        self.p_value = p_value
-        self.null_hypothesis = bool(p_value > 0.05)
-        self.y_predictor = self.alpha + self.beta*self.x_return
-        
-    # graficar las series de tiempo de los activos
-    def plot_timeseries(self):
-        functions.plot_comparing_two_timeseries(self.assets, self.df)
-    
-    # graficar la regresión lineal del CAPM
-    def plot_beta(self):
+    def plot(self):
+        x = self.df_returns[self.benchmark].values
+        y = self.df_returns[self.asset].values
         title = (
                 f"Linear regression \n" 
                 f" asset {self.asset} "
@@ -104,20 +127,18 @@ class CapitalAssetPricingModel:
                 f" alpha (intercept) {self.alpha:.4f} "
                 f" | beta (slope) {self.beta:.4f} \n"
                 f" p-value {self.p_value} "
-                f" | null hypothesis {self.null_hypothesis} \n"
-                f" correl (r-value) {self.correlation:.4f}"
+                f" | correl (r-value) {self.correlation:.4f}"
                 f" | r-squared {self.r_squared:.4f}"
             )
         plt.figure(figsize=(10,6))
-        plt.scatter(self.x_return, self.y_return, color='blue', label='Datos reales')
-        plt.plot(self.x_return, self.y_predictor, color='red', label='Línea de regresión')
+        plt.scatter(x, y, color='blue', label='Datos reales')
+        plt.plot(x, self.predictor, color='red', label='Línea de regresión')
         plt.xlabel(self.benchmark)
         plt.ylabel(self.asset)
         plt.title(title)
         plt.legend()
         plt.grid(True)
         plt.show()
-        
 
 class Hedger:
     
