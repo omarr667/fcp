@@ -125,7 +125,151 @@ class CapitalAssetPricingModel:
         plt.grid(True)
         plt.show()
         
+  
+class HedgeCAPM:
+    """Clase que construye la cobertura.
 
+    Para exactamente 1 activo:
+        - Delta neutral
+        - Beta neutral
+
+    Para exactamente 2 activos de cobertura:
+        - Neutralidad delta + beta
+    """
+
+    # Constructor
+    def __init__(self, portfolio, hedge_assets):
+        self.portfolio = portfolio
+        self.hedge_assets = self._as_list(hedge_assets)  # Puede ingresar una lista o un texto
+
+    # Calcular la cobertura delta-neutral (1 activo)
+    def compute_delta_neutral(self):
+        """Calcula la cobertura delta neutral para exactamente un activo."""
+        benchmark = self.portfolio.benchmark  # Usamos el mismo benchmark del portafolio
+
+        # En las diapositivas vimos que, para la neutralidad delta:
+        #   w_h = -Delta(port)
+        #
+        # En nuestro caso:
+        #   delta = w_h
+        #   Delta(port) = self.portfolio.delta
+
+        delta = -self.portfolio.delta
+        notional = abs(delta)
+
+        beta = functions.compute_betas(benchmark, self.hedge_assets)[0]
+        betaUSD = beta * delta
+        hedge = PortfolioCAPM(
+            notional, delta, betaUSD,
+            self.hedge_assets[0], benchmark, beta
+        )
+        return hedge
+
+    # Calcular la cobertura beta-neutral (1 activo)
+    def compute_beta_neutral(self):
+        """Calcula la cobertura beta neutral para exactamente un activo."""
+        benchmark = self.portfolio.benchmark  # Usamos el mismo benchmark del portafolio
+
+        beta = functions.compute_betas(benchmark, self.hedge_assets)[0]
+        if abs(beta) < 1e-12:
+            raise ValueError("El beta es aproximadamente 0; no se puede construir una cobertura beta neutral.")
+
+        # En las diapositivas vimos que, para la neutralidad beta:
+        #   w_h = - betaUSD_portfolio / beta_h
+        delta = -self.portfolio.betaUSD / beta
+
+        notional = abs(delta)
+        betaUSD = beta * delta
+        hedge_portfolio = PortfolioCAPM(
+            notional, delta, betaUSD,
+            self.hedge_assets[0], benchmark, beta
+        )
+        return hedge_portfolio
+
+    def compute(self):
+        """Calcula la cobertura delta + beta neutral con 2 activos de cobertura."""
+        assets = self.hedge_assets
+        if len(assets) < 2:
+            raise ValueError("La función requiere al menos 2 activos de cobertura.")
+        assets = assets[0:2]  # Seleccionamos los primeros 2 activos de cobertura
+
+        benchmark = self.portfolio.benchmark
+        beta1, beta2 = functions.compute_betas(benchmark, assets)
+
+        # Sistema de ecuaciones:
+        #   w1 + w2 = -delta_portfolio
+        #   beta1*w1 + beta2*w2 = -betaUSD_portfolio
+        A = np.array([
+            [1, 1],
+            [beta1, beta2]
+        ])
+        b = np.array([
+            -self.portfolio.delta,
+            -self.portfolio.betaUSD
+        ])
+
+        # w = A^{-1} b
+        #
+        # Para poder invertir A, se requiere det(A) != 0.
+        determinante = np.linalg.det(A)
+        if abs(determinante) < 1e-12:
+            raise ValueError("Sistema singular: la solución no es estable (det(A) ≈ 0).")
+
+        w1, w2 = np.linalg.solve(A, b)
+
+        weights = {assets[0]: w1, assets[1]: w2}
+
+        hedge_delta = w1 + w2
+        hedge_notional = abs(w1) + abs(w2)
+        hedge_betaUSD = beta1 * w1 + beta2 * w2
+
+        assets_str = " + ".join(assets)
+        beta_str = "{ '%s': %s, '%s': %s}" % (assets[0], beta1, assets[1], beta2)
+
+        hedge = PortfolioCAPM(
+            hedge_notional, hedge_delta, hedge_betaUSD,
+            asset=assets_str, beta=beta_str, weights=weights
+        )
+        return hedge
+
+    # Helper
+    def _as_list(self, item):
+        """Transforma un elemento en una lista."""
+        if isinstance(item, str):
+            return [item]
+        return item
+
+
+class PortfolioCAPM:
+    """Inicializa un portafolio con las características:
+    notional, delta, betaUSD, asset=None, benchmark='^SPX'
+    """
+
+    # Constructor
+    def __init__(self, notional, delta, betaUSD, asset=None, benchmark='^SPX', beta=None, weights=None):
+        self.notional = notional
+        self.delta = delta
+        self.betaUSD = betaUSD
+        self.asset = asset
+        self.benchmark = benchmark
+        self.beta = beta
+        self.weights = weights
+
+    def __repr__(self):
+        """Devuelve una representación en string al imprimir la clase."""
+        return (
+            f"PortfolioCAPM(asset={self.asset}, "
+            f"benchmark={self.benchmark},\n "
+            f"notional={self.notional}, "
+            f"delta={self.delta},\n "
+            f"betaUSD={self.betaUSD}, \n"
+            f"beta={self.beta}, "
+            f"weights={self.weights})"
+        )
+
+        
+
+        
 class Hedger:
     
     # constructor
