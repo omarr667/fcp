@@ -262,7 +262,6 @@ def get_universe():
 
 
 
-
 def get_prices(assets):
     """
     Obtiene los precios de cierre de varios activos desde SQLite y 
@@ -336,4 +335,5 @@ def get_returns(assets):
     except Exception as e:
         print(f"Error al calcular rendimientos: {e}")
         return None
+
 
