@@ -237,3 +237,103 @@ def generate_index_universe():
         print(f"Error general en generate_local_asset_universe: {e}")
     finally:
         conn.close()
+
+
+
+
+
+def get_universe():
+    """
+    Función para ver la tabla del universo de activos
+
+    Returns
+    -------
+    None.
+    """
+    try:
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+        df = pd.read_sql("SELECT * FROM universe;", conn)
+        conn.close()
+        
+        return df
+    except sql.Error as e:
+        print(f"Error al obtener la base del universo de activos {e}")
+
+
+
+
+def get_prices(assets):
+    """
+    Obtiene los precios de cierre de varios activos desde SQLite y 
+    los combina por la columna 'Date'.
+
+    Parameters
+    ----------
+    assets : list[str]
+        Lista de tickers.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame con columna Date y los precios de cierre de cada activo.
+    """
+    try:
+        if isinstance(assets, str): 
+            assets = [assets]
+            
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+
+        # Lista donde guardaremos cada DataFrame individual
+        dfs = []
+
+        for asset in assets:
+            query = f'SELECT Date, Close AS "{asset}" FROM "{asset}"'
+            df_asset = (
+                pd.read_sql_query(query, conn)
+                  .set_index("Date")
+            )
+            dfs.append(df_asset)
+
+        # Unión horizontal de todos los DataFrames
+        df_final = pd.concat(dfs, axis=1).reset_index()
+        df_final = df_final.dropna()
+        return df_final
+
+    except sql.Error as e:
+        print(f"Error al obtener precios: {e}")
+        return None
+
+    finally:
+        conn.close()
+
+def get_returns(assets):
+    """
+    Calcula los rendimientos diarios de varios activos.
+
+    Parameters
+    ----------
+    assets : list[str]
+        Lista de tickers.
+
+    Returns
+    -------
+    DataFrame
+        DataFrame con columna Date y los rendimientos diarios de cada activo.
+    """
+    try:
+        # Obtener precios
+        df_prices = get_prices(assets)
+        df_returns = df_prices.copy()
+        df_returns.set_index("Date", inplace=True)
+
+        # Calcular rendimientos diarios
+        df_returns = df_returns.pct_change().dropna().reset_index()
+
+        return df_returns
+
+    except Exception as e:
+        print(f"Error al calcular rendimientos: {e}")
+        return None
+
