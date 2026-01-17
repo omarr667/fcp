@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Nov  8 10:42:24 2025
-
-@author: meval
-"""
 
 from fcp import data, functions
 import matplotlib.pyplot as plt
@@ -274,10 +268,12 @@ class HedgeCAPM:
 
         beta = functions.compute_betas(benchmark, self.hedge_assets)[0]
         betaUSD = beta * delta
-        hedge = PortfolioCAPM(
-            notional, delta, betaUSD,
-            self.hedge_assets[0], benchmark, beta
-        )
+        hedge = PortfolioCAPM(delta=delta,
+                              betaUSD=betaUSD,
+                              notional=notional,
+                              asset=self.hedge_assets[0],
+                              benchmark=benchmark,
+                              beta=beta)
         return hedge
 
     # Calcular la cobertura beta-neutral (1 activo)
@@ -295,11 +291,13 @@ class HedgeCAPM:
 
         notional = abs(delta)
         betaUSD = beta * delta
-        hedge_portfolio = PortfolioCAPM(
-            notional, delta, betaUSD,
-            self.hedge_assets[0], benchmark, beta
-        )
-        return hedge_portfolio
+        hedge = PortfolioCAPM(delta=delta,
+                              betaUSD=betaUSD,
+                              notional=notional,
+                              asset=self.hedge_assets[0],
+                              benchmark=benchmark,
+                              beta=beta)
+        return hedge
 
     def compute(self):
         """Calcula la cobertura delta + beta neutral con 2 activos de cobertura."""
@@ -332,19 +330,22 @@ class HedgeCAPM:
 
         w1, w2 = np.linalg.solve(A, b)
 
-        weights = {assets[0]: w1, assets[1]: w2}
+        weights = {assets[0]: float(w1), assets[1]: float(w2)}
 
-        hedge_delta = w1 + w2
-        hedge_notional = abs(w1) + abs(w2)
-        hedge_betaUSD = beta1 * w1 + beta2 * w2
+        delta = w1 + w2
+        notional = abs(w1) + abs(w2)
+        betaUSD = beta1 * w1 + beta2 * w2
 
-        assets_str = " + ".join(assets)
+        assets_str = "|".join(assets)
         beta_str = "{ '%s': %s, '%s': %s}" % (assets[0], beta1, assets[1], beta2)
 
-        hedge = PortfolioCAPM(
-            hedge_notional, hedge_delta, hedge_betaUSD,
-            asset=assets_str, beta=beta_str, weights=weights
-        )
+        hedge = PortfolioCAPM(delta=delta,
+                              betaUSD=betaUSD,
+                              notional=notional,
+                              asset=assets_str,
+                              benchmark=benchmark,
+                              beta=beta_str,
+                              weights=weights)
         return hedge
 
     # Helper
@@ -361,10 +362,11 @@ class PortfolioCAPM:
     """
 
     # Constructor
-    def __init__(self, notional, delta, betaUSD, asset=None, benchmark='^SPX', beta=None, weights=None):
-        self.notional = notional
+    def __init__(self, delta, betaUSD, notional=None, asset=None, 
+                 benchmark='^SPX', beta=None, weights=None): 
         self.delta = delta
         self.betaUSD = betaUSD
+        self.notional = notional or abs(delta)
         self.asset = asset
         self.benchmark = benchmark
         self.beta = beta
@@ -373,13 +375,11 @@ class PortfolioCAPM:
     def __repr__(self):
         """Devuelve una representación en string al imprimir la clase."""
         return (
-            f"PortfolioCAPM(asset={self.asset}, "
-            f"benchmark={self.benchmark},\n "
-            f"notional={self.notional}, "
-            f"delta={self.delta},\n "
-            f"betaUSD={self.betaUSD}, \n"
-            f"beta={self.beta}, "
-            f"weights={self.weights})"
+            f"PortfolioCAPM(delta={\
+                self.delta}, betaUSD={self.betaUSD},\n"
+                f"notional={self.notional}, asset={self.asset}, "
+                f"benchmark={self.benchmark}, beta={self.beta},\n"
+                f"weights={self.weights})"
         )
 
         
