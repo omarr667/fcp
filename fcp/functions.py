@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 21 18:56:23 2025
+
+@author: meval
+"""
 
 from fcp import data, classes
 import matplotlib.pyplot as plt

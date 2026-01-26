@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Nov  8 10:42:24 2025
+
+@author: meval
+"""
 
 from fcp import data, functions
 import matplotlib.pyplot as plt
@@ -375,11 +381,86 @@ class PortfolioCAPM:
     def __repr__(self):
         """Devuelve una representación en string al imprimir la clase."""
         return (
-            f"PortfolioCAPM(delta={\
-                self.delta}, betaUSD={self.betaUSD},\n"
+            f"PortfolioCAPM(delta={self.delta}, betaUSD={self.betaUSD},\n"
                 f"notional={self.notional}, asset={self.asset}, "
                 f"benchmark={self.benchmark}, beta={self.beta},\n"
                 f"weights={self.weights})"
         )
 
+
+class CovarianceMatrix:
+    """
+    Analizando los movimientos de los activos.
+    """
+    
+    def __init__(self, assets):
+        if not isinstance(assets, (list, tuple)):
+            raise ValueError("asset debe ser una lista")
+            
+        self.assets = list(assets)
+        self.n_assets = len(self.assets)
+        
+        # Resultados
+        self.df_returns = None
+        self.covariance_matrix = None
+        self.correlation_matrix = None
+        
+        self.variance_annual = None
+        self.volatility_annual = None
+        
+        # Eigenvalores y eigenvectores
+        self.eigenvalues = None 
+        self.eigenvectors = None 
+        self.variance_explained = None
+        
+        # Portfolio
+        self.variance_min = None
+        self.variance_max = None
+        self.volatility_min = None
+        self.volatility_max = None
+        
+    def compute(self):
+        factor = 252
+        
+        df = data.get_returns(self.assets)
+        df.set_index("Date", inplace=True)
+        self.df_returns = df
+        
+        # Matriz de covarianzas
+        self.covariance_matrix = df.cov() * factor
+        self.correlation_matrix = df.corr()
+        
+        # Varianzas anuales
+        self.variance_annual = np.diag(self.covariance_matrix.values)
+        self.volatility_annual = np.sqrt(self.variance_annual)
+        
+        # Eigenvalores
+        evalor, evector = np.linalg.eigh(self.covariance_matrix.values)
+        self.eigenvalues = evalor
+        self.eigenvectors = evector
+        self.variance_explained = self.eigenvalues / np.sum(self.eigenvalues)
+        
+        # Cota de la varianza del portfolio
+        self.variance_min = self.eigenvalues[0]
+        self.variance_max = self.eigenvalues[-1]
+        self.volatility_min = np.sqrt(self.variance_min)
+        self.volatility_max = np.sqrt(self.variance_max)
+        
+    def compute_portfolio_variance(self, weights=None):
+        self.compute()
+        
+        if weights is None:
+            w = np.ones(self.n_assets) / self.n_assets
+        else:
+            w = np.array(weights)
+            
+        covar = self.covariance_matrix.values
+            
+        #portafolio_variance = np.matmul(w.T,np.matmul(covar, w))
+        portafolio_variance = w.T @ covar @ w
+        return portafolio_variance
+            
+            
+
+        
         
