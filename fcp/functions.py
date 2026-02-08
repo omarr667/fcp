@@ -45,6 +45,9 @@ def compute_display_name_asset(asset:str) -> str:
 
 def compute_beta(benchmark, asset):
     """ Ajusta un modelo CAPM y regresa el beta correspondiente"""
+    if benchmark == asset:
+        return 1.0
+    
     capm = classes.CapitalAssetPricingModel(benchmark, asset)
     capm.compute()
     beta = float(capm.beta)

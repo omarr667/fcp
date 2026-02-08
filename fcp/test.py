@@ -1,9 +1,263 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Nov  8 10:42:24 2025
+    #     # Convierte la columna de fecha a formato de fecha (sin hora)
+    #     hist['Date'] = pd.to_datetime(hist['Date']).dt.date
+        
+    #     # Guarda el DataFrame como CSV si save_csv es True
+    #     if save_csv:
+    #         try:
+    #             hist.to_csv(f"fcp/fcp_data/csv/{asset_name}.csv")
+    #         except Exception as e:
+    #             print(f"Error al guardar CSV para {asset_name}: {e}")
+        
+    #     # Guarda el DataFrame en la base de datos si conn está disponible
+    #     if conn:
+    #         try:
+    #             hist.to_sql(asset_name, conn, if_exists="replace", index=False)
+    #         except Exception as e:
+    #             print(f"Error al guardar en base de datos para {asset_name}: {e}")
+        
+    #     return hist
+    # except Exception as e:
+    #     print(f"Error al obtener datos para {asset_name}: {e}")
+    #     return pd.DataFrame()  # Retorna un DataFrame vacío en caso de error
 
-@author: meval
-"""
+def generate_local_asset_universe(start_date, end_date):
+    try:
+        # Carga el archivo JSON que contiene los activos a procesar
+                
+        with importlib.resources.open_text("fcp.fcp_data", "universe_assets.json", encoding='utf-8') as file:
+            universe_dict = json.load(file)
+            
+    
+        # Conecta a la base de datos SQLite
+    
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+        
+        # Convierte el universo de activos en un DataFrame y lo guarda en la base de datos
+        universe_df = pd.DataFrame(universe_dict)
+        universe_df.to_sql('universe', conn, if_exists="replace", index=False)
+        
+        # Obtiene los nombres de los activos para procesar
+        assets_names = universe_df['asset'].to_list()
+        
+        # Itera sobre cada activo y obtiene sus datos
+        for asset_name in assets_names:
+            print(f'Generando info de {asset_name}')
+            get_asset_data_yahoo(asset_name, start_date, end_date, save_csv=True, conn=conn)
+        
+    except FileNotFoundError:
+        print(f"El archivo fcp.fcp_data no se encontró.")
+    except sql.Error as e:
+        print(f"Error al trabajar con la base de datos: {e}")
+    except Exception as e:
+        print(f"Error general en generate_local_asset_universe: {e}")
+    finally:
+        conn.close()
+
+# Obtiene datos de la base de datos
+def get_asset_data(asset_name=None, where=None, query=None):
+    if not asset_name and not query:
+        raise ValueError("Se debe proporcionar 'asset_name' o 'query'.")
+
+    try:
+        # Conecta a la base de datos SQLite
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+
+        if asset_name:
+            # Construye la consulta SQL para seleccionar todos los registros de la tabla del activo
+            sql_query = f'SELECT * FROM "{asset_name}"'
+            if where:
+                # Añade una cláusula WHERE si se proporciona
+                sql_query += f' WHERE {where}'
+        else:
+            # Usa la consulta personalizada proporcionada
+            sql_query = query
+
+        # Ejecuta la consulta y carga los datos en un DataFrame
+        df = pd.read_sql(sql_query, conn)
+    except sql.Error as e:
+        print(f"Error al acceder a la base de datos: {e}")
+        raise
+    finally:
+        # Cierra la conexión a la base de datos
+        conn.close()
+
+    return df
+
+# Cálculo de rendimientos
+def get_assets_data_general(asset_names = None, query_where = None, kind='return'):
+    if query_where:
+        # Obtiene la lista de activos desde la tabla 'universe' según la condición proporcionada
+        universe_temp_df = get_asset_data('universe', where=query_where)
+        asset_names = universe_temp_df['asset'].to_list()
+        if not asset_names:
+            raise ValueError("No se encontraron activos con la condición proporcionada en 'query_where'.")
+        print('Generando rendimientos de los activos:')
+        print(asset_names)
+    
+    merged = None
+    for asset_name in asset_names:
+        
+        df = get_asset_data(asset_name)
+        if df.empty:
+            print(f"Advertencia: La tabla para el activo '{asset_name}' está vacía.")
+            continue
+        if 'Date' not in df.columns or 'Close' not in df.columns:
+            print(f"Advertencia: La tabla para el activo '{asset_name}' no contiene las columnas 'Date' y 'Close'.")
+            continue
+        close_df = df[['Date', 'Close']]
+        close_df = close_df.sort_values(by=['Date'])
+        close_df['Return'] = (close_df['Close']-close_df['Close'].shift(1)) / close_df['Close'].shift(1)
+        close_df = close_df.dropna()
+        close_name = f'{asset_name}_Close'
+        return_name = f'{asset_name}_Return'
+        close_df = close_df.rename(columns={'Close': close_name, \
+                                            'Return': return_name})
+            
+        if merged is None:
+            merged = close_df.copy()
+        else:
+            merged = merged.merge(close_df, how='inner', on='Date')
+    
+    if merged is None:
+        raise ValueError("No se pudieron procesar los datos de los activos proporcionados.")
+    merged = merged.set_index('Date')
+    
+    
+    if kind == 'return':
+        merged = merged.filter(like='_Return') #AAPL_Return --> AAPL
+        merged.columns = [col.replace('_Return', '') for col in merged.columns]
+    elif kind == 'close':
+        merged = merged.filter(like='_Close')
+        merged.columns = [col.replace('_Close', '') for col in merged.columns]
+        
+    return merged
+
+
+def generate_index_universe():
+    try:
+        # Carga el archivo JSON que contiene los activos a procesar
+                
+        with importlib.resources.open_text("fcp.fcp_data", "universe_assets.json", encoding='utf-8') as file:
+            universe_dict = json.load(file)
+            
+    
+        # Conecta a la base de datos SQLite
+    
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+        
+        # Convierte el universo de activos en un DataFrame y lo guarda en la base de datos
+        universe_df = pd.DataFrame(universe_dict)
+        universe_df.to_sql('universe', conn, if_exists="replace", index=False)
+    except FileNotFoundError:
+        print(f"El archivo fcp.fcp_data no se encontró.")
+    except sql.Error as e:
+        print(f"Error al trabajar con la base de datos: {e}")
+    except Exception as e:
+        print(f"Error general en generate_local_asset_universe: {e}")
+    finally:
+        conn.close()
+
+
+def get_universe():
+    try:
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+        df = pd.read_sql("SELECT * FROM universe;", conn)
+        conn.close()
+        
+        return df
+    except sql.Error as e:
+        print(f"Error al obtener la base del universo de activos {e}")
+
+
+
+def get_prices(assets):
+    try:
+        if isinstance(assets, str): 
+            assets = [assets]
+            
+        with importlib.resources.path("fcp.fcp_data", "fcp_database.db") as database_path:
+            conn = sql.connect(database_path)
+
+        # Lista donde guardaremos cada DataFrame individual
+        dfs = []
+
+        for asset in assets:
+            query = f'SELECT Date, Close AS "{asset}" FROM "{asset}"'
+            df_asset = (
+                pd.read_sql_query(query, conn)
+                  .set_index("Date")
+            )
+            dfs.append(df_asset)
+
+        # Unión horizontal de todos los DataFrames
+        df_final = pd.concat(dfs, axis=1).reset_index()
+        df_final = df_final.dropna()
+        return df_final
+
+    except sql.Error as e:
+        print(f"Error al obtener precios: {e}")
+        return None
+
+    finally:
+        conn.close()
+
+def get_returns(assets):
+    try:
+        # Obtener precios
+        df_prices = get_prices(assets)
+        df_returns = df_prices.copy()
+        df_returns.set_index("Date", inplace=True)
+
+        # Calcular rendimientos diarios
+        df_returns = df_returns.pct_change().dropna().reset_index()
+
+        return df_returns
+
+    except Exception as e:
+        print(f"Error al calcular rendimientos: {e}")
+        return None
+
+from fcp import data, classes
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats as sci
+
+def jarque_bera_normality_test(x, alpha=0.95):
+    n = len(x)
+    skew = sci.skew(x)
+    kurtosis = sci.kurtosis(x)
+    jb = n/6 * (skew**2 + 1/4*kurtosis**2)
+    p_value = 1 - sci.chi2.cdf(jb, df=2)
+    is_normal = bool(p_value >= 1-alpha)
+    return is_normal, p_value
+
+
+def compute_display_name_asset(asset:str) -> str:
+    universe_df = data.get_universe()
+    asset_record = universe_df[universe_df["asset"] == asset]
+    if asset_record.empty:
+        return asset
+    
+    return f'{asset} - {asset_record["name"].values[0]}'
+
+
+def compute_beta(benchmark, asset):
+    capm = classes.CapitalAssetPricingModel(benchmark, asset)
+    capm.compute()
+    beta = float(capm.beta)
+    return beta
+
+
+def compute_betas(benchmark, assets):
+    betas = []
+    for asset in assets:
+        beta = compute_beta(benchmark, asset)
+        betas.append(beta)
+    return betas
 
 from fcp import data, functions
 import matplotlib.pyplot as plt
@@ -165,12 +419,7 @@ class CapitalAssetPricingModel:
         
         return fig
         
-        
 
-
-
-        
-    # calcular la regresión lineal del CAPM
     def compute(self):
         x = self.df_returns[self.benchmark].values
         y = self.df_returns[self.asset].values
@@ -222,7 +471,9 @@ class CapitalAssetPricingModel:
                 )
         )
         
-        # Línea de regresión
+
+
+
         order = np.argsort(x)
         fig.add_trace(
             go.Scatter(
@@ -242,33 +493,13 @@ class CapitalAssetPricingModel:
     
     
 class HedgeCAPM:
-    """Clase que construye la cobertura.
-
-    Para exactamente 1 activo:
-        - Delta neutral
-        - Beta neutral
-
-    Para exactamente 2 activos de cobertura:
-        - Neutralidad delta + beta
-    """
 
     # Constructor
     def __init__(self, portfolio, hedge_assets):
         self.portfolio = portfolio
-        self.hedge_assets = self._as_list(hedge_assets)  # Puede ingresar una lista o un texto
-
-    # Calcular la cobertura delta-neutral (1 activo)
+        self.hedge_assets = self._as_list(hedge_assets)
     def compute_delta_neutral(self):
-        """Calcula la cobertura delta neutral para exactamente un activo."""
-        benchmark = self.portfolio.benchmark  # Usamos el mismo benchmark del portafolio
-
-        # En las diapositivas vimos que, para la neutralidad delta:
-        #   w_h = -Delta(port)
-        #
-        # En nuestro caso:
-        #   delta = w_h
-        #   Delta(port) = self.portfolio.delta
-
+        benchmark = self.portfolio.benchmark  
         delta = -self.portfolio.delta
         notional = abs(delta)
 
@@ -284,7 +515,6 @@ class HedgeCAPM:
 
     # Calcular la cobertura beta-neutral (1 activo)
     def compute_beta_neutral(self):
-        """Calcula la cobertura beta neutral para exactamente un activo."""
         benchmark = self.portfolio.benchmark  # Usamos el mismo benchmark del portafolio
 
         beta = functions.compute_betas(benchmark, self.hedge_assets)[0]
@@ -306,7 +536,6 @@ class HedgeCAPM:
         return hedge
 
     def compute(self):
-        """Calcula la cobertura delta + beta neutral con 2 activos de cobertura."""
         assets = self.hedge_assets
         if len(assets) < 2:
             raise ValueError("La función requiere al menos 2 activos de cobertura.")
@@ -314,10 +543,6 @@ class HedgeCAPM:
 
         benchmark = self.portfolio.benchmark
         beta1, beta2 = functions.compute_betas(benchmark, assets)
-
-        # Sistema de ecuaciones:
-        #   w1 + w2 = -delta_portfolio
-        #   beta1*w1 + beta2*w2 = -betaUSD_portfolio
         A = np.array([
             [1, 1],
             [beta1, beta2]
@@ -326,10 +551,6 @@ class HedgeCAPM:
             -self.portfolio.delta,
             -self.portfolio.betaUSD
         ])
-
-        # w = A^{-1} b
-        #
-        # Para poder invertir A, se requiere det(A) != 0.
         determinante = np.linalg.det(A)
         if abs(determinante) < 1e-12:
             raise ValueError("Sistema singular: la solución no es estable (det(A) ≈ 0).")
@@ -363,10 +584,6 @@ class HedgeCAPM:
 
 
 class PortfolioCAPM:
-    """Inicializa un portafolio con las características:
-    notional, delta, betaUSD, asset=None, benchmark='^SPX'
-    """
-
     # Constructor
     def __init__(self, delta, betaUSD, notional=None, asset=None, 
                  benchmark='^SPX', beta=None, weights=None): 
@@ -388,11 +605,7 @@ class PortfolioCAPM:
         )
 
 
-class CovarianceMatrix:
-    """
-    Analizando los movimientos de los activos.
-    """
-    
+class CovarianceMatrix:    
     def __init__(self, assets):
         if not isinstance(assets, (list, tuple)):
             raise ValueError("asset debe ser una lista")
@@ -405,7 +618,6 @@ class CovarianceMatrix:
         self.covariance_matrix = None
         self.correlation_matrix = None
         
-        self.means = None
         self.variance_annual = None
         self.volatility_annual = None
         
@@ -427,15 +639,9 @@ class CovarianceMatrix:
         df.set_index("Date", inplace=True)
         self.df_returns = df
         
-        # Valores medios
-        X = df.values
-        self.means = X.mean(axis = 0) * factor
-        
         # Matriz de covarianzas
         self.covariance_matrix = df.cov() * factor
         self.correlation_matrix = df.corr()
-        
-        
         
         # Varianzas anuales
         self.variance_annual = np.diag(self.covariance_matrix.values)
@@ -443,11 +649,8 @@ class CovarianceMatrix:
         
         # Eigenvalores
         evalor, evector = np.linalg.eigh(self.covariance_matrix.values)
-        # Por default linalg.eigh estan ordenados de menor a mayor
-        # Lo necesitamos de mayor a menor
-        
-        self.eigenvalues = evalor[::-1]
-        self.eigenvectors = evector[:, ::-1]
+        self.eigenvalues = evalor
+        self.eigenvectors = evector
         self.variance_explained = self.eigenvalues / np.sum(self.eigenvalues)
         
         # Cota de la varianza del portfolio
