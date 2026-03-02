@@ -8,8 +8,10 @@ Created on Sat Nov  8 10:42:24 2025
 from fcp import data, functions
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from scipy import stats as sci
 import plotly.graph_objects as go
+from scipy.optimize import minimize
 
 class Distribution:
     
@@ -393,27 +395,26 @@ class CovarianceMatrix:
     Analizando los movimientos de los activos.
     """
     
-    def __init__(self, assets):
+    def __init__(self, assets, **kwargs):
         if not isinstance(assets, (list, tuple)):
             raise ValueError("asset debe ser una lista")
-            
         self.assets = list(assets)
         self.n_assets = len(self.assets)
-        
         # Resultados
         self.df_returns = None
         self.covariance_matrix = None
         self.correlation_matrix = None
-        
+        # métricas de portafolios
         self.means = None
         self.variance_annual = None
-        self.volatility_annual = None
-        
+        self.volatility_annual = None  
+        self.sharpe_ratio = None
         # Eigenvalores y eigenvectores
         self.eigenvalues = None 
         self.eigenvectors = None 
         self.variance_explained = None
-        
+        self.benchmark = kwargs.get('benchmark','^SPX')
+        self.betas = None
         # Portfolio
         self.variance_min = None
         self.variance_max = None
@@ -422,55 +423,184 @@ class CovarianceMatrix:
         
     def compute(self):
         factor = 252
-        
         df = data.get_returns(self.assets)
         df.set_index("Date", inplace=True)
         self.df_returns = df
-        
         # Valores medios
         X = df.values
         self.means = X.mean(axis = 0) * factor
-        
         # Matriz de covarianzas
         self.covariance_matrix = df.cov() * factor
         self.correlation_matrix = df.corr()
-        
-        
-        
+        # betas de assets
+        self.betas = functions.compute_betas(self.benchmark, self.assets)
         # Varianzas anuales
         self.variance_annual = np.diag(self.covariance_matrix.values)
         self.volatility_annual = np.sqrt(self.variance_annual)
-        
+        self.sharpe_ratio = self.means / self.volatility_annual
         # Eigenvalores
         evalor, evector = np.linalg.eigh(self.covariance_matrix.values)
         # Por default linalg.eigh estan ordenados de menor a mayor
         # Lo necesitamos de mayor a menor
-        
         self.eigenvalues = evalor[::-1]
         self.eigenvectors = evector[:, ::-1]
         self.variance_explained = self.eigenvalues / np.sum(self.eigenvalues)
-        
         # Cota de la varianza del portfolio
-        self.variance_min = self.eigenvalues[0]
-        self.variance_max = self.eigenvalues[-1]
+        self.variance_max = self.eigenvalues[0]
+        self.variance_min = self.eigenvalues[-1]
         self.volatility_min = np.sqrt(self.variance_min)
         self.volatility_max = np.sqrt(self.variance_max)
         
     def compute_portfolio_variance(self, weights=None):
         self.compute()
-        
         if weights is None:
             w = np.ones(self.n_assets) / self.n_assets
         else:
-            w = np.array(weights)
-            
-        covar = self.covariance_matrix.values
-            
+            w = np.array(weights) 
+        covar = self.covariance_matrix.values 
         #portafolio_variance = np.matmul(w.T,np.matmul(covar, w))
         portafolio_variance = w.T @ covar @ w
         return portafolio_variance
+    
+    
+class PortfolioManager(CovarianceMatrix):
+    
+    def __init__(self, assets,  benchmark='^SPX'):
+        # Extender nuestro constructor
+        super().__init__(assets, benchmark=benchmark) # Lo inicial
+        self.df_metrics = None
+        self.sharpe_ratio = None
+    
+        
+    def compute(self):
+        super().compute() # del padre: compute de CovarianceMatrix
+        self.df_metrics = pd.DataFrame({
+            "asset": self.assets, 
+            "mean_annual": self.means,
+            "volatility_annual": self.volatility_annual, 
+            "sharpe_ratio": self.sharpe_ratio, 
+            "beta": self.betas
+        })
+        self.df_metrics.set_index('asset', inplace=True)
+    
+    def compute_portfolio(self, port_type=None, notional=1, **kwargs):
+        """
+        Hace el compute del portfolio:
+        Inputs:
+            port_type: Tipos de portafolios: 
+                'equiweight'
+                'long_only'
+                
+        """
+        # inputs para la optimización
+        x0 = np.ones(self.n_assets) / self.n_assets
+        args = (self.covariance_matrix.values)
+        
+        # restricciones de tipo ecuación para la optimización
+        constraint_L1 = {'type':'eq','fun':lambda x: np.sum(np.abs(x)) - 1}
             
+        if port_type == 'equiweight':
+            weights_normalised = np.ones(self.n_assets) / self.n_assets
             
+        elif port_type == 'long_only':
+            bounds = [(0,None) for asset in self.assets]
+            constraints = (constraint_L1)
+            result = minimize(fun=functions.portfolio_variance,
+                              x0=x0,
+                              args=args,
+                              bounds=bounds,
+                              constraints=constraints)
+            weights_normalised = result.x
+            
+        elif port_type == 'markowitz_default':
+            target_return = np.mean(self.means)
+            bounds = [(0,None) for asset in self.assets]
+            constraint_markowitz = {'type':'eq','fun':lambda x: (x.T @ self.means) - target_return}
+            constraints = (constraint_L1, constraint_markowitz)
+            result = minimize(fun=functions.portfolio_variance,
+                              x0=x0,
+                              args=args,
+                              bounds=bounds,
+                              constraints=constraints)
+            weights_normalised = result.x
+            
+        elif port_type == 'markowitz':
+            target_return = kwargs.get('target_return',np.mean(self.means))
+            bounds = [(0,None) for asset in self.assets]
+            constraint_markowitz = {'type':'eq','fun':lambda x: (x.T @ self.means) - target_return}
+            constraints = (constraint_L1, constraint_markowitz)
+            result = minimize(fun=functions.portfolio_variance,
+                              x0=x0,
+                              args=args,
+                              bounds=bounds,
+                              constraints=constraints)
+            weights_normalised = result.x
+              
+        weights = notional * weights_normalised
+        mean_annual = weights.T @ self.means
+        variance_annual = functions.portfolio_variance(weights, self.covariance_matrix)
+        volatility_annual = np.sqrt(variance_annual)
+        sharpe_ratio = mean_annual / volatility_annual
+        delta_usd = np.sum(weights)
+        beta_usd = weights.T @ self.betas
+        
+        portfolio = Portfolio(assets = self.assets,
+                              weights = weights, 
+                              notional = notional,
+                              port_type = port_type,
+                              mean_annual = mean_annual,
+                              volatility_annual = volatility_annual,
+                              sharpe_ratio = sharpe_ratio,
+                              delta_usd = delta_usd,
+                              beta_usd = beta_usd)
+        
+        return portfolio
 
-        
-        
+
+class Portfolio:
+    ''' Clase que representa un portafolio con sus características:
+    input:
+    - assets: lista de activos
+    - weights: pesos de cada activo en el portafolio
+    - notional: monto total del portafolio
+    - port_type: tipo de portafolio (e.g., 'equiweight',
+        'long_only', 'markowitz_default', 'markowitz')
+    - mean_annual: rendimiento anual esperado del portafolio
+    - volatility_annual: volatilidad anual del portafolio
+    - sharpe_ratio: ratio de Sharpe del portafolio
+    - delta_usd: exposición total en dólares del portafolio (suma de pesos
+        multiplicada por el notional)
+    - beta_usd: exposición total al riesgo sistemático del portafolio (suma de pesos multiplicada por los betas de los activos)
+    '''
+    def __init__(self, assets, weights, notional, port_type,
+                 mean_annual, volatility_annual, sharpe_ratio,
+                 delta_usd, beta_usd):
+
+        self.assets = assets
+        self.weights = weights
+        self.notional = notional
+        self.port_type = port_type
+        self.mean_annual = mean_annual
+        self.volatility_annual = volatility_annual
+        self.sharpe_ratio = sharpe_ratio
+        self.n_assets = len(assets)
+        self.delta_usd = delta_usd
+        self.beta_usd = beta_usd
+
+    def __repr__(self):
+
+        weights_fmt = [f"{w:.2%}" for w in self.weights]
+
+        return (
+            f"Portfolio(\n"
+            f"  type        = {self.port_type}\n"
+            f"  assets      = {self.assets}\n"
+            f"  weights     = {weights_fmt}\n"
+            f"  notional    = ${self.notional:,.0f}\n"
+            f"  mean        = {self.mean_annual:.2%}\n"
+            f"  volatility  = {self.volatility_annual:.2%}\n"
+            f"  sharpe      = {self.sharpe_ratio:.3f}\n"
+            f"  delta_usd   = ${self.delta_usd:,.2f}\n"
+            f"  beta_usd    = ${self.beta_usd:,.2f}\n"
+            f")"
+        )

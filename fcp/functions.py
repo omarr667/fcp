@@ -47,7 +47,6 @@ def compute_beta(benchmark, asset):
     """ Ajusta un modelo CAPM y regresa el beta correspondiente"""
     if benchmark == asset:
         return 1.0
-    
     capm = classes.CapitalAssetPricingModel(benchmark, asset)
     capm.compute()
     beta = float(capm.beta)
@@ -61,3 +60,8 @@ def compute_betas(benchmark, assets):
         beta = compute_beta(benchmark, asset)
         betas.append(beta)
     return betas
+
+# Función a minimizar para el portafolios de Markowitz.
+# Los inputs deben ser del tipo numpy array.
+def portfolio_variance(x, A):
+    return x.T @ A @ x
