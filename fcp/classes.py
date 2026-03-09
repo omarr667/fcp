@@ -16,11 +16,19 @@ from scipy.optimize import minimize
 class Distribution:
     
     # constructor
-    def __init__(self, asset):
-        self.asset = asset
-        self.df_prices = data.get_prices(self.asset)
-        self.df_returns = data.get_returns(self.asset)
-        self.vec_returns = self.df_returns[self.asset].values
+    def __init__(self, asset=None, portfolio=None):
+        if asset:
+            self.asset = asset
+            self.df_prices = data.get_prices(self.asset)
+            self.df_returns = data.get_returns(self.asset)
+            self.vec_returns = self.df_returns[self.asset].values
+        elif portfolio:
+            self.asset = portfolio.port_type
+            self.df_prices = portfolio.portfolio_prices
+            self.df_returns = portfolio.portfolio_returns
+            self.vec_returns = portfolio.portfolio_returns.values
+        
+            
         self.mean = None
         self.volatility = None
         self.mean_annual = None
@@ -483,14 +491,18 @@ class PortfolioManager(CovarianceMatrix):
         })
         self.df_metrics.set_index('asset', inplace=True)
     
+    
     def compute_portfolio(self, port_type=None, notional=1, **kwargs):
         """
         Hace el compute del portfolio:
         Inputs:
             port_type: Tipos de portafolios: 
                 'equiweight'
+                'volatility_weighted
+                'beta_weighted'
+                'min_volatility_L1'
                 'long_only'
-                
+                'markowitz'
         """
         # inputs para la optimización
         x0 = np.ones(self.n_assets) / self.n_assets
@@ -500,7 +512,23 @@ class PortfolioManager(CovarianceMatrix):
         constraint_L1 = {'type':'eq','fun':lambda x: np.sum(np.abs(x)) - 1}
             
         if port_type == 'equiweight':
-            weights_normalised = np.ones(self.n_assets) / self.n_assets
+            weights = np.ones(self.n_assets)
+            
+        elif port_type == 'volatility_weighted':
+            weights = 1 / self.volatility_annual
+            
+        elif port_type == 'beta_weighted':
+            weights = self.betas
+            
+        elif port_type == 'min_volatility_L1':
+            bounds = None
+            constraints = (constraint_L1)
+            result = minimize(fun=functions.portfolio_variance,
+                              x0=x0,
+                              args=args,
+                              bounds=bounds,
+                              constraints=constraints)
+            weights = result.x
             
         elif port_type == 'long_only':
             bounds = [(0,None) for asset in self.assets]
@@ -510,19 +538,7 @@ class PortfolioManager(CovarianceMatrix):
                               args=args,
                               bounds=bounds,
                               constraints=constraints)
-            weights_normalised = result.x
-            
-        elif port_type == 'markowitz_default':
-            target_return = np.mean(self.means)
-            bounds = [(0,None) for asset in self.assets]
-            constraint_markowitz = {'type':'eq','fun':lambda x: (x.T @ self.means) - target_return}
-            constraints = (constraint_L1, constraint_markowitz)
-            result = minimize(fun=functions.portfolio_variance,
-                              x0=x0,
-                              args=args,
-                              bounds=bounds,
-                              constraints=constraints)
-            weights_normalised = result.x
+            weights = result.x
             
         elif port_type == 'markowitz':
             target_return = kwargs.get('target_return',np.mean(self.means))
@@ -534,9 +550,22 @@ class PortfolioManager(CovarianceMatrix):
                               args=args,
                               bounds=bounds,
                               constraints=constraints)
-            weights_normalised = result.x
+            weights = result.x
+            
+        elif port_type == 'custom':
+            weights = kwargs.get('weights',np.ones(self.n_assets))
+            
+        else:
+            port_type = 'equiweight'
+            weights = np.ones(self.n_assets)
               
-        weights = notional * weights_normalised
+        # normalizar pesos en L1
+        weights /= np.linalg.norm(weights,1)
+        
+        # cambiar pesos normalizados para satisfacer el nocional dado
+        weights *= notional
+        
+        # cálculo de métricas de portafolios
         mean_annual = weights.T @ self.means
         variance_annual = functions.portfolio_variance(weights, self.covariance_matrix)
         volatility_annual = np.sqrt(variance_annual)
@@ -544,6 +573,7 @@ class PortfolioManager(CovarianceMatrix):
         delta_usd = np.sum(weights)
         beta_usd = weights.T @ self.betas
         
+        # crear la clase output de tipo Portfolio
         portfolio = Portfolio(assets = self.assets,
                               weights = weights, 
                               notional = notional,
@@ -552,7 +582,8 @@ class PortfolioManager(CovarianceMatrix):
                               volatility_annual = volatility_annual,
                               sharpe_ratio = sharpe_ratio,
                               delta_usd = delta_usd,
-                              beta_usd = beta_usd)
+                              beta_usd = beta_usd,
+                              df_returns=self.df_returns)
         
         return portfolio
 
@@ -574,7 +605,7 @@ class Portfolio:
     '''
     def __init__(self, assets, weights, notional, port_type,
                  mean_annual, volatility_annual, sharpe_ratio,
-                 delta_usd, beta_usd):
+                 delta_usd, beta_usd, df_returns=None):
 
         self.assets = assets
         self.weights = weights
@@ -586,7 +617,18 @@ class Portfolio:
         self.n_assets = len(assets)
         self.delta_usd = delta_usd
         self.beta_usd = beta_usd
-
+        self.df_returns = df_returns
+        
+        self.portfolio_returns = None
+        self.portfolio_prices = None
+        if self.df_returns is not None:
+            returns_and_prices = self.compute_portfolio_returns()
+            self.portfolio_returns = returns_and_prices[0]
+            self.portfolio_prices = returns_and_prices[1]
+        
+        
+        
+        
     def __repr__(self):
 
         weights_fmt = [f"{w:.2%}" for w in self.weights]
@@ -604,3 +646,57 @@ class Portfolio:
             f"  beta_usd    = ${self.beta_usd:,.2f}\n"
             f")"
         )
+    
+    def compute_portfolio_returns(self):
+        
+        df = self.df_returns.copy()
+        portfolio_returns = df @ self.weights
+        portfolio_returns.name = f"port_{self.port_type}"
+        
+        
+        portfolio_prices = ( 1 +  portfolio_returns ).cumprod()
+        portfolio_prices = 100 *  portfolio_prices / portfolio_prices.iloc[0]
+        portfolio_prices.name = f"port_{self.port_type}"
+        return portfolio_returns, portfolio_prices
+    
+
+    
+    def plot_histogram(self):
+        plt.Figure()
+        plt.hist(self.portfolio_returns, bins=100)
+        plt.title(f"Histograma del portfolio {self.port_type}")
+        plt.show()
+        return plt
+    
+    def plot_timeseries(self, assets_to_plot=None):
+        df = self.df_returns.copy()
+        
+        # Su no se especifican activos a graficar
+        # será graficar todos
+        if assets_to_plot is None:
+            assets_to_plot = self.assets
+        
+        # Dataframe vacío, donde se guardarán los valores
+        df_plot = pd.DataFrame(index = df.index )
+        
+        # Nombre de la serie a graficar
+        portfolio_name =  f"port_{self.port_type}"
+        
+        # Acumulación de returnos 
+        df_plot[portfolio_name] = ( 1 + self.portfolio_returns ).cumprod()
+        df_plot[portfolio_name] = 100 * df_plot[portfolio_name] / df_plot[portfolio_name].iloc[0]
+        
+        # Hacer lo mismo, pero para activo
+        for asset in assets_to_plot:
+            df_plot[asset] = (1 + df[asset]).cumprod()
+            df_plot[asset] = 100 * df_plot[asset] /  df_plot[asset].iloc[0]
+        
+        # Grafica
+        df_plot.plot(figsize=(12,6))
+        plt.title(f"Evolución del Portfolio {self.port_type}")
+        plt.grid(True)
+        plt.show()
+        
+        return plt
+            
+        
