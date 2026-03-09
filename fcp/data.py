@@ -337,3 +337,23 @@ def get_returns(assets):
         return None
 
 
+
+
+def get_assets(column_name, values=[]):
+    """
+    Regresa un subconjunto de activos como lista.
+
+    Parameters
+    ----------
+    assets : column:name[str]
+        Columna de universe, por ejemplo asset_class o sublass
+
+    Returns
+    -------
+    list
+        Lista de tickers o nombres de los activos
+    """
+    if isinstance(values, str):
+        values = [values]
+    universe = get_universe()
+    return universe[universe[column_name].isin(values)]['asset'].tolist()
