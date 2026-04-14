@@ -704,20 +704,33 @@ class Option:
 class OptionBlackScholes(Option):
     
     def compute(self):
-        d1 = 1/(self.sigma*np.sqrt(self.tau)) * (
-            np.log(self.S_t/self.K) + (self.r+0.5*self.sigma**2)*self.tau
+        
+        try:
+            d1 = 1/(self.sigma*np.sqrt(self.tau)) * (
+                np.log(self.S_t/self.K) + (self.r + 0.5*self.sigma**2)*self.tau
             )
-        d2 = d1 - self.sigma*np.sqrt(self.tau)
-        # premium o precio de la opción
-        premium = self.S_t*sci.norm.cdf(d1) - \
-            self.K*np.exp(-self.r*self.tau)*sci.norm.cdf(d2)
+            d2 = d1 - self.sigma*np.sqrt(self.tau)
+
+            premium = self.S_t*sci.norm.cdf(d1) - \
+                self.K*np.exp(-self.r*self.tau)*sci.norm.cdf(d2)
+
+            self.delta = sci.norm.cdf(d1)
+            self.vega = self.S_t * sci.norm.pdf(d1) * np.sqrt(self.tau)
+            self.theta = -self.S_t*sci.norm.pdf(d1)*self.sigma/(2*np.sqrt(self.tau)) \
+                - self.r*self.K*np.exp(-self.r*self.tau)*sci.norm.cdf(d2)
+            self.gamma = sci.norm.pdf(d1)/(self.S_t*self.sigma*np.sqrt(self.tau))
+
+        except Exception:
+            # Caso límite: tau = 0 o sigma = 0
+            intrinsic_value = max(self.S_t - self.K, 0)
+
+            premium = intrinsic_value
+            self.delta = 1.0 if self.S_t > self.K else 0.0
+            self.vega = 0.0
+            self.theta = 0.0
+            self.gamma = 0.0
+
         self.premium = premium
-        # greeks: derivadas parciales o sensibilidades
-        self.delta = sci.norm.cdf(d1)
-        self.vega = self.S_t * sci.norm.pdf(d1) * np.sqrt(self.tau)
-        self.theta = -self.S_t*sci.norm.pdf(d1)*self.sigma/(2*np.sqrt(self.tau)) \
-            -self.r*self.K*np.exp(-self.r*self.tau)*sci.norm.cdf(d2)
-        self.gamma = sci.norm.pdf(d1)/(self.S_t*self.sigma*np.sqrt(self.tau))
         
         
     def plot(self, greek=None, times=[3,2,1,0.1]):
