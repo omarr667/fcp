@@ -26,9 +26,7 @@ class Distribution:
             self.asset = portfolio.port_type
             self.df_prices = portfolio.portfolio_prices
             self.df_returns = portfolio.portfolio_returns
-            self.vec_returns = portfolio.portfolio_returns.values
-        
-            
+            self.vec_returns = portfolio.portfolio_returns.values    
         self.mean = None
         self.volatility = None
         self.mean_annual = None
@@ -39,8 +37,8 @@ class Distribution:
         self.skewness = None
         self.kurtosis = None
         self.p_value = None
-        self.is_normal = None
-    
+        self.is_normal = None   
+        
     # método o función de plot de serie de tiempo de precios de cierre
     def plot_prices(self):
         self.df_prices.plot()
@@ -148,7 +146,6 @@ class CapitalAssetPricingModel:
                 )
         )
         
-        
         fig.update_layout(
             title="Comparación de precios de cierre",
             xaxis=dict(title="Fecha"),
@@ -171,15 +168,10 @@ class CapitalAssetPricingModel:
             ),
             margin=dict(l=40, r=40, t=60, b=40),
         )
-
         
         return fig
         
-        
 
-
-
-        
     # calcular la regresión lineal del CAPM
     def compute(self):
         x = self.df_returns[self.benchmark].values
@@ -230,8 +222,7 @@ class CapitalAssetPricingModel:
                 marker=dict(color="cyan")
                 
                 )
-        )
-        
+        ) 
         # Línea de regresión
         order = np.argsort(x)
         fig.add_trace(
@@ -243,9 +234,6 @@ class CapitalAssetPricingModel:
                 line=dict(color="red")
                 )
             )
-        
-        
-        
         fig.update_layout(title="Regresión")
         
         return fig
@@ -511,13 +499,13 @@ class PortfolioManager(CovarianceMatrix):
         # restricciones de tipo ecuación para la optimización
         constraint_L1 = {'type':'eq','fun':lambda x: np.sum(np.abs(x)) - 1}
             
-        if port_type == 'equiweight':
+        if port_type == 'equiweight': # ERIKA
             weights = np.ones(self.n_assets)
             
-        elif port_type == 'volatility_weighted':
+        elif port_type == 'volatility_weighted': # VICTORIA
             weights = 1 / self.volatility_annual
             
-        elif port_type == 'beta_weighted':
+        elif port_type == 'beta_weighted': # BEATRIZ
             weights = self.betas
             
         elif port_type == 'min_volatility_L1':
@@ -552,8 +540,8 @@ class PortfolioManager(CovarianceMatrix):
                               constraints=constraints)
             weights = result.x
             
-        elif port_type == 'custom':
-            weights = kwargs.get('weights',np.ones(self.n_assets))
+        elif port_type == 'custom': # CELIA
+            weights = kwargs.get('weights', np.ones(self.n_assets))
             
         else:
             port_type = 'equiweight'
@@ -618,17 +606,14 @@ class Portfolio:
         self.delta_usd = delta_usd
         self.beta_usd = beta_usd
         self.df_returns = df_returns
-        
         self.portfolio_returns = None
         self.portfolio_prices = None
         if self.df_returns is not None:
             returns_and_prices = self.compute_portfolio_returns()
             self.portfolio_returns = returns_and_prices[0]
             self.portfolio_prices = returns_and_prices[1]
-        
-        
-        
-        
+
+
     def __repr__(self):
 
         weights_fmt = [f"{w:.2%}" for w in self.weights]
@@ -647,50 +632,45 @@ class Portfolio:
             f")"
         )
     
+    
     def compute_portfolio_returns(self):
         
         df = self.df_returns.copy()
         portfolio_returns = df @ self.weights
         portfolio_returns.name = f"port_{self.port_type}"
-        
-        
         portfolio_prices = ( 1 +  portfolio_returns ).cumprod()
         portfolio_prices = 100 *  portfolio_prices / portfolio_prices.iloc[0]
         portfolio_prices.name = f"port_{self.port_type}"
+        
         return portfolio_returns, portfolio_prices
     
-
     
     def plot_histogram(self):
         plt.Figure()
         plt.hist(self.portfolio_returns, bins=100)
         plt.title(f"Histograma del portfolio {self.port_type}")
         plt.show()
+        
         return plt
+    
     
     def plot_timeseries(self, assets_to_plot=None):
         df = self.df_returns.copy()
-        
         # Su no se especifican activos a graficar
         # será graficar todos
         if assets_to_plot is None:
             assets_to_plot = self.assets
-        
         # Dataframe vacío, donde se guardarán los valores
         df_plot = pd.DataFrame(index = df.index )
-        
         # Nombre de la serie a graficar
         portfolio_name =  f"port_{self.port_type}"
-        
         # Acumulación de returnos 
-        df_plot[portfolio_name] = ( 1 + self.portfolio_returns ).cumprod()
+        df_plot[portfolio_name] = (1 + self.portfolio_returns).cumprod()
         df_plot[portfolio_name] = 100 * df_plot[portfolio_name] / df_plot[portfolio_name].iloc[0]
-        
         # Hacer lo mismo, pero para activo
         for asset in assets_to_plot:
             df_plot[asset] = (1 + df[asset]).cumprod()
-            df_plot[asset] = 100 * df_plot[asset] /  df_plot[asset].iloc[0]
-        
+            df_plot[asset] = 100 * df_plot[asset] / df_plot[asset].iloc[0]
         # Grafica
         df_plot.plot(figsize=(12,6))
         plt.title(f"Evolución del Portfolio {self.port_type}")
@@ -698,5 +678,144 @@ class Portfolio:
         plt.show()
         
         return plt
+    
+    
+class Option:
+    
+    def __init__(self, S_t, K, sigma, 
+                 r=None, t=None, T=None):           
+        self.S_t = S_t # precio del activo S al tiempo actual t
+        self.K = K # strike o precio de ejercicio
+        self.sigma = sigma # volatilidad anual
+        self.r = r or 0.043 # tasa de interés de USA de bonos de 10 años
+        self.t = t or 0.0 # tiempo actual
+        self.T = T or 3/12 # Tiempo de expiración de la opciónm en años
+        self.tau = self.T - self.t # tiempo restante
+        self.premium = None
+        self.delta = None
+        self.vega = None
+        self.theta = None
+        self.gamma = None
+    
+    def compute(self):
+        return None
+    
+    
+class OptionBlackScholes(Option):
+    
+    def compute(self):
+        d1 = 1/(self.sigma*np.sqrt(self.tau)) * (
+            np.log(self.S_t/self.K) + (self.r+0.5*self.sigma**2)*self.tau
+            )
+        d2 = d1 - self.sigma*np.sqrt(self.tau)
+        # premium o precio de la opción
+        premium = self.S_t*sci.norm.cdf(d1) - \
+            self.K*np.exp(-self.r*self.tau)*sci.norm.cdf(d2)
+        self.premium = premium
+        # greeks: derivadas parciales o sensibilidades
+        self.delta = sci.norm.cdf(d1)
+        self.vega = self.S_t * sci.norm.pdf(d1) * np.sqrt(self.tau)
+        self.theta = -self.S_t*sci.norm.pdf(d1)*self.sigma/(2*np.sqrt(self.tau)) \
+            -self.r*self.K*np.exp(-self.r*self.tau)*sci.norm.cdf(d2)
+        self.gamma = sci.norm.pdf(d1)/(self.S_t*self.sigma*np.sqrt(self.tau))
+        
+        
+    def plot(self, greek=None, times=[3,2,1,0.1]):
+        
+        S = np.linspace(1, 150, 500)
+        
+        if greek == 'delta':
+            # plot de la delta de la opción
+            rows = {}
+            for tau in times:
+                d1 = 1/(self.sigma*np.sqrt(tau)) * (
+                    np.log(S/self.K) + 
+                    (self.r+0.5*self.sigma**2)*tau)
+                delta = sci.norm.cdf(d1)
+                rows[f'tau={tau}/12'] = delta
+            df = pd.DataFrame(index=S, data=rows)
+            df.plot(title='Plot de la delta de la opción')
+            
+        elif greek == 'gamma':
+            rows = {}
+            for tau in times:
+                d1 = 1/(self.sigma*np.sqrt(tau)) * (
+                    np.log(S/self.K) + 
+                    (self.r+0.5*self.sigma**2)*tau)
+                gamma = sci.norm.pdf(d1)/(S*self.sigma*np.sqrt(tau))
+                rows[f'tau={tau}/12'] = gamma
+            df = pd.DataFrame(index=S, data=rows)
+            df.plot(title='Plot de la gamma de la opción')
+            
+        else:
+            # plot del precio de la opción
+            rows = {}
+            for tau in times:
+                d1 = 1/(self.sigma*np.sqrt(tau)) * (
+                    np.log(S/self.K) + 
+                    (self.r+0.5*self.sigma**2)*tau)
+                d2 = d1 - self.sigma*np.sqrt(tau)
+                premium = S*sci.norm.cdf(d1) \
+                    - self.K*np.exp(-self.r*tau)*sci.norm.cdf(d2)
+                rows[f'tau={tau}/12'] = premium
+            df = pd.DataFrame(index=S, data=rows)
+            df.plot(title='Plot del precio de la opción')
+
+    def __repr__(self):
+        return (
+            '-----\n'
+            'Instancia de la clase OptionBlackScholes\n'
+            f'El precio de la opción es {self.premium}\n'
+            f'La "delta" de la opción es {self.delta}\n'
+            f'La "vega" la opción es {self.vega}\n'
+            f'La "theta" de la opción es {self.theta}\n'
+            f'La "gamma" de la opción es {self.gamma}'
+            )
+
+
+class OptionMonteCarlo(Option):
+    
+    def __init__(self, S_t, K, sigma, nb_sims=None, seed=None, 
+                 r=None, t=None, T=None):
+        super().__init__(S_t, K, sigma, r, t, T)
+        self.nb_sims = nb_sims or 10**6
+        self.seed = seed 
+        self.payoffs = None
+    
+    
+    def compute(self):
+        
+        if self.seed is not None:
+            np.random.seed(self.seed)
+        # generamos nb_sims variables aleatorias normales N(0,1)
+        N = np.random.normal(0.0,1.0,self.nb_sims)
+        # generamos nb_sims Brownianos al tiempo T a partir de N
+        B_T = np.sqrt(self.tau) * N
+        # generamos nb_sims precios que siguen una distribución log-normal
+        S_T = self.S_t * np.exp((self.r-0.5*self.sigma**2)*self.tau 
+                                + self.sigma*B_T)
+        # generamos nb_sims payoffs de opciones call a partir de S_T
+        f_T = np.array([max(s - self.K, 0) for s in S_T])
+        self.payoffs = f_T
+        # precio de la opción call vía Monte Carlo
+        self.premium = np.exp(-self.r*self.tau) * np.mean(f_T)
+        # valores del intervalo de confianza
+        var_cfi = np.var(f_T)
+        self.radius_cfi = 1.96 * np.sqrt(var_cfi/self.nb_sims)
+        self.confidence_interval = self.premium + self.radius_cfi*np.array([-1.0,1.0])
+
+    def __repr__(self):
+        return (
+            '-----\n'
+            'Modelo de Monte Carlo\n'
+            f'El número de simulaciones es {self.nb_sims}\n'
+            f'El precio de la opción es {self.premium}\n'
+            f'El radio del intervalo de confianza es {self.radius_cfi}\n'
+            f'El intervalo de confianza es {self.confidence_interval}'   
+            )
+
+    
+        
+        
             
         
