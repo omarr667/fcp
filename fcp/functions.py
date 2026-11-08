@@ -7,7 +7,7 @@ Created on Sat Oct 31 10:21:15 2026
 
 import numpy as np
 import scipy.stats as sci
-from fcp import data, classes
+from . import data, classes
 
 def jarque_bera_test(x, alpha=0.05):
     # test de normalidad de Jarque-Bera

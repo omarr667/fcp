@@ -7,13 +7,28 @@ Created on Sat Oct 24 13:04:19 2026
 import pandas as pd
 from . import database
 
-def get_universe():
+def get_universe(formatted=False):
     """Devuelve el catálogo de activos guardos en base de datos"""
     with database.connect() as conn:
         df = pd.read_sql_query('SELECT * FROM universo ORDER BY ID', conn)
     
+    if formatted:
+        return df
+    
+    old_cols = ['ID', 'Símbolo', 'Nombre', 'Clase de activo', 'Subclase', 
+                   'País', 'Descripción', 'Moneda de cotización', 
+                   'Unidad de cotización']
+    new_cols = ['id', 'asset', 'name', 'asset_class', 'subclass', 
+                'country', 'description', 'currency', 
+                'unit']
+    col_names = {
+        old_cols[aux]: new_cols[aux]
+        for aux in range(len(new_cols))
+    }
+    
+    
+    df = df.rename(columns= col_names)
     return df
-
 
 def get_asset(symbol):
     """
@@ -39,7 +54,7 @@ def get_asset(symbol):
     if tabla.empty:
         raise ValueError(f"No datos para {symbol}")
     
-    
+    tabla["Date"] = pd.to_datetime(tabla["Date"]).dt.date
     return tabla
     
     
