@@ -33,6 +33,9 @@ class Distribution:
         self.df_prices = data.get_prices(ticker)
         self.df_returns = data.get_returns(ticker)
         self.mean = None
+        self.quartile_1 = None
+        self.quartile_3 = None
+        self.median = None
         self.std = None
         self.skewness = None
         self.kurtosis = None
@@ -49,6 +52,9 @@ class Distribution:
         x = self.df_returns.values
         factor = 252
         self.mean = np.mean(x)
+        self.median = np.median(x)
+        self.quartile_1 = np.percentile(x,25)
+        self.quartile_3 = np.percentile(x,75)
         self.std = np.std(x)
         self.skewness = sci.skew(x)[0]
         self.kurtosis = sci.kurtosis(x)[0]
